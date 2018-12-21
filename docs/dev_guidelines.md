@@ -2,7 +2,10 @@
 
 ## Code
 
-* snake case
+* PEP 8 for code
+* PEP 257 docstrings
+* docstring for packages in \_\_init\_\_.py
+* docstring for modules
 * docstring for classes with description and \_\_init\_\_ args, where applicable
 * docstring for methods and functions with additional "# type: (arg_type, ...) -> *return_type*" declaration
 
