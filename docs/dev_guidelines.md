@@ -29,8 +29,8 @@
     * merges into ``master`` with new micro version tag
     * merges into ``develop`` with current micro version tag
     
-### Versions
+### Versioning
 
 * major = merge year
 * minor = merge month
-* micro = incremental number = issue id
+* micro = incremental number = total merges
