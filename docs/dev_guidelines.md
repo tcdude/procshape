@@ -7,7 +7,8 @@
 * docstring for packages in \_\_init\_\_.py
 * docstring for modules
 * docstring for classes with description and \_\_init\_\_ args, where applicable
-* docstring for methods and functions with additional "# type: (arg_type, ...) -> *return_type*" declaration
+* docstring for methods and functions 
+* typing used with "# type: (arg_type, ...) -> *return_type*" declaration
 * PyCharm shows me a green check mark on every file
 
 
@@ -15,7 +16,7 @@
 
 ### Branches
 
-Simple structure for one person
+Simple structure for one dev: 
 
 * **master** 
     * latest stable version

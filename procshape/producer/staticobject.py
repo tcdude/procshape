@@ -1,5 +1,5 @@
 """
-The ShapeProducer class is a blank shape, meant to be subclassed and used
+The StaticObjectProducer class is a blank shape, meant to be subclassed and used
  to procedurally generate shapes of varying complexity to use in 3D
  applications.
 The basic implementation simply generates the geom of a cube and demonstrates
@@ -10,6 +10,6 @@ The basic implementation simply generates the geom of a cube and demonstrates
 from procshape.producer.base import BaseProducer
 
 
-class ShapeProducer(BaseProducer):
+class StaticObjectProducer(BaseProducer):
     def generate(self, lod=None):
         pass

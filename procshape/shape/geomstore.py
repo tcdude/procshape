@@ -101,9 +101,9 @@ class GeomStore(object):
         Returns vertex id
         """
         vertex = Vertex(point=point, color=color)
-        v_id = self.__get_vertex_id_by_obj__(vertex)
-        if v_id:
-            return v_id
+        # v_id = self.__get_vertex_id_by_obj__(vertex)
+        # if v_id:
+        #     return v_id
         self.__vertex_id__ += 1
         self.__vertices__[self.__vertex_id__] = vertex
         return self.__vertex_id__
@@ -120,9 +120,9 @@ class GeomStore(object):
             v2=self.__get_vertex_by_id__(v2_id),
             v3=self.__get_vertex_by_id__(v3_id),
         )
-        t_id = self.__get_triangle_id_by_obj__(triangle)
-        if t_id:
-            return t_id
+        # t_id = self.__get_triangle_id_by_obj__(triangle)
+        # if t_id:
+        #     return t_id
         self.__triangle_id__ += 1
         self.__triangles__[self.__triangle_id__] = triangle
         return self.__triangle_id__
