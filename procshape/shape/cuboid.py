@@ -50,6 +50,12 @@ class Cuboid(object):
     def geom_node(self):
         return self.geom_store.get_p3d_geom_node('cuboid')
 
+    def subdivide(self, subdivisions=2):
+        self.geom_store.subdivide_mesh(subdivisions)
+
+    def subdivide_dist(self, target_distance=2):
+        self.geom_store.subdivide_mesh_dist(target_distance)
+
     def generate(self):
         edge_divide = self.edge_points - 1
         x_step = self.bounding_box.x * 2 / edge_divide
@@ -71,20 +77,20 @@ class Cuboid(object):
                     x_left = x_start + x * x_step
                     x_right = x_start + (x + 1) * x_step
                     v1 = self.geom_store.add_vertex(
-                        Vec3(x_left, y, z_top),
-                        Vec3(1, 0, 0)
+                        (x_left, y, z_top),
+                        (1., 0., 0.)
                     )
                     v2 = self.geom_store.add_vertex(
-                        Vec3(x_left, y, z_bottom),
-                        Vec3(1, 0, 0)
+                        (x_left, y, z_bottom),
+                        (1., 0., 0.)
                     )
                     v3 = self.geom_store.add_vertex(
-                        Vec3(x_right, y, z_bottom),
-                        Vec3(1, 0, 0)
+                        (x_right, y, z_bottom),
+                        (1., 0., 0.)
                     )
                     v4 = self.geom_store.add_vertex(
-                        Vec3(x_right, y, z_top),
-                        Vec3(1, 0, 0)
+                        (x_right, y, z_top),
+                        (1., 0., 0.)
                     )
                     if ccw:
                         self.geom_store.add_triangle(v1, v2, v3)
@@ -109,20 +115,20 @@ class Cuboid(object):
                     x_left = x_start + x * x_step
                     x_right = x_start + (x + 1) * x_step
                     v1 = self.geom_store.add_vertex(
-                        Vec3(x_left, y_top, z),
-                        Vec3(0, 1, 0)
+                        (x_left, y_top, z),
+                        (0., 1., 0.)
                     )
                     v2 = self.geom_store.add_vertex(
-                        Vec3(x_left, y_bottom, z),
-                        Vec3(0, 1, 0)
+                        (x_left, y_bottom, z),
+                        (0., 1., 0.)
                     )
                     v3 = self.geom_store.add_vertex(
-                        Vec3(x_right, y_bottom, z),
-                        Vec3(0, 1, 0)
+                        (x_right, y_bottom, z),
+                        (0., 1., 0.)
                     )
                     v4 = self.geom_store.add_vertex(
-                        Vec3(x_right, y_top, z),
-                        Vec3(0, 1, 0)
+                        (x_right, y_top, z),
+                        (0., 1., 0.)
                     )
                     if ccw:
                         self.geom_store.add_triangle(v1, v2, v3)
@@ -147,20 +153,20 @@ class Cuboid(object):
                     y_left = y_start - y * y_step
                     y_right = y_start - (y + 1) * y_step
                     v1 = self.geom_store.add_vertex(
-                        Vec3(x, y_left, z_top),
-                        Vec3(0, 0, 1)
+                        (x, y_left, z_top),
+                        (0., 0., 1.)
                     )
                     v2 = self.geom_store.add_vertex(
-                        Vec3(x, y_left, z_bottom),
-                        Vec3(0, 0, 1)
+                        (x, y_left, z_bottom),
+                        (0., 0., 1.)
                     )
                     v3 = self.geom_store.add_vertex(
-                        Vec3(x, y_right, z_bottom),
-                        Vec3(0, 0, 1)
+                        (x, y_right, z_bottom),
+                        (0., 0., 1.)
                     )
                     v4 = self.geom_store.add_vertex(
-                        Vec3(x, y_right, z_top),
-                        Vec3(0, 0, 1)
+                        (x, y_right, z_top),
+                        (0., 0., 1.)
                     )
                     if ccw:
                         self.geom_store.add_triangle(v1, v2, v3)
