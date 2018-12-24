@@ -1,3 +1,24 @@
 """
-Provides basic shapes for PG
+Provides basic shapes for PG. All shapes should be subclassed from Shape.
 """
+from procshape.shape.geomstore import GeomStore
+
+
+class Shape(object):
+    def __init__(self, name='Shape'):
+        self.__geom_store__ = GeomStore()
+        self.name = name
+
+    @property
+    def geom_store(self):
+        return self.__geom_store__
+
+    @property
+    def geom_node(self):
+        return self.geom_store.get_p3d_geom_node(self.name)
+
+    def subdivide(self, subdivisions=2):
+        self.geom_store.subdivide_mesh(subdivisions)
+
+    def subdivide_dist(self, target_distance=2):
+        self.geom_store.subdivide_mesh_dist(target_distance)
