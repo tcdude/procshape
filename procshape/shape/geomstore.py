@@ -18,6 +18,7 @@ from panda3d.core import GeomTriangles
 from panda3d.core import GeomVertexData
 from panda3d.core import GeomVertexFormat
 from panda3d.core import GeomVertexWriter
+from panda3d.core import LVector3f
 
 from procshape.helpers.types import C
 from procshape.helpers.types import NPA
@@ -182,6 +183,33 @@ class GeomStore(object):
     @property
     def colors(self):
         return self.__colors__
+
+    def to_unit_sphere(self):
+        lengths = np.sqrt(
+            (self.vertices ** 2).sum(
+                axis=1
+            ).reshape(self.vertices.shape[0], 1)
+        )
+        self.__vertices__ = self.vertices / lengths
+
+    def __mul__(self, other):
+        # type: (Union[float, NPA, LVector3f]) -> bool
+        if isinstance(other, float):
+            self.__vertices__ *= other
+            return True
+        elif isinstance(other, NPA):
+            if other.shape == (3,):
+                self.__vertices__ *= other
+                return True
+        else:
+            try:
+                self.__vertices__ *= np.array(other, dtype=np.float32)
+            except ValueError:
+                pass
+            else:
+                return True
+        raise ValueError('Expected scalar float, panda3d Vec3 or ndarray '
+                         f'of shape (3, ), got {type(other)} instead.')
 
     def extend(self, other):
         # type: (GeomStore) -> None

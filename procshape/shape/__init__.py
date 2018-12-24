@@ -15,7 +15,12 @@ class Shape(object):
 
     @property
     def geom_node(self):
+        self.geom_node_trigger()
         return self.geom_store.get_p3d_geom_node(self.name)
+
+    def geom_node_trigger(self):
+        """Method to override, to perform actions prior to export"""
+        pass
 
     def subdivide(self, subdivisions=2):
         self.geom_store.subdivide_mesh(subdivisions)
