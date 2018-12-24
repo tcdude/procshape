@@ -1,6 +1,7 @@
 """
 Modular spheroid shape created form a spherized cuboid.
 """
+
 from typing import Optional
 
 from panda3d.core import Vec3
