@@ -7,33 +7,26 @@
 * docstring for packages in \_\_init\_\_.py
 * docstring for modules
 * docstring for classes with description and \_\_init\_\_ args, where applicable
-* docstring for methods and functions with additional "# type: (arg_type, ...) -> *return_type*" declaration
+* docstring for methods and functions 
+* typing used with "# type: (arg_type, ...) -> *return_type*" declaration
+* PyCharm shows me a green check mark on every file
 
 
 ## Git
 
 ### Branches
 
+Simple structure for one dev: 
+
 * **master** 
     * latest stable version
-    * major version tags
+    * major and minor version tags on release
 * **develop**
     * current development version
     * based on ``master``
     * merges into ``master`` with new major version tag
-    * has minor version tag
-* **_issue_-branches**
-    * issue branch for feature development 
-    * based on ``develop``
-    * merges into ``develop`` with new micro version tag
-* **_hot_fix_-branches**
-    * hot-fix branch for implementing critical bug fixes
-    * based on ``master`` and respective version tag
-    * merges into ``master`` with new micro version tag
-    * merges into ``develop`` with current micro version tag
     
 ### Versioning
 
 * major = merge year
 * minor = merge month
-* micro = incremental number = total merges

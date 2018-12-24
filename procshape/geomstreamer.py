@@ -14,3 +14,7 @@ Produces:
 Panda3D Node objects (GeomNode, Bullet(Rigid)BodyNode), including
  TransformState objects, for you to use in your application.
 """
+
+
+class GeomStreamer(object):
+    pass
