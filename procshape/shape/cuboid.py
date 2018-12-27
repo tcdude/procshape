@@ -45,15 +45,19 @@ class Cuboid(Shape):
             bounds = tuple(bounds)  # type: Tuple[float, float]
             origin = n * 1
             origin.componentwise_mult(self.bounding_box)
+            color_plus = tuple(Vec3(0.5) + n * 0.5) + (1.0,)
+            color_minus = tuple(Vec3(0.5) - n * 0.5) + (1.0,)
             p = Plane(
                 tuple(origin + self.origin_offset),
                 bounds,
                 tuple(n)
             )
+            p.geom_store.set_color(color_plus)
             self.geom_store.extend(p.geom_store)
             p = Plane(
                 tuple(-origin + self.origin_offset),
                 bounds,
                 tuple(-n)
             )
+            p.geom_store.set_color(color_minus)
             self.geom_store.extend(p.geom_store)
