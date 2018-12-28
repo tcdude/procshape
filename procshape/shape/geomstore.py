@@ -185,12 +185,15 @@ class GeomStore(object):
         return self.__colors__
 
     def to_unit_sphere(self):
+        self.__vertices__ = self.get_vertex_normals()
+
+    def get_vertex_normals(self):
         lengths = np.sqrt(
             (self.vertices ** 2).sum(
                 axis=1
             ).reshape(self.vertices.shape[0], 1)
         )
-        self.__vertices__ = self.vertices / lengths
+        return self.vertices / lengths
 
     def __mul__(self, other):
         # type: (Union[float, NPA, LVector3f]) -> bool
@@ -242,6 +245,13 @@ class GeomStore(object):
         ids = selection or range(len(self.colors))
         for i in ids:
             self.__colors__[i] = color
+
+    def normals_as_colors(self):
+        normals = self.get_vertex_normals()
+        colors = np.empty((len(normals), 4), dtype=np.float32)
+        colors[:, :3] = normals * 0.5 + 0.5
+        colors[:, -1:] = 1.0
+        self.__colors__ = colors
 
     def subdivide_mesh(self, subdivisions=1):
         # type: (Optional[int]) -> None

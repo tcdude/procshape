@@ -107,8 +107,10 @@ class Demo(ShowBase):
             *[random.uniform(-100.0, 100.0) for _ in range(2)],
             random.uniform(50.0, 400.0)
         )
+        hpr = Vec3(*[random.random() * 360 for _ in range(3)])
         c = Cuboid(bounding_box)
         c.subdivide_dist(4)
+        c.geom_store.normals_as_colors()
         geom_node = c.geom_node
         cuboid_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
@@ -120,6 +122,7 @@ class Demo(ShowBase):
         cuboid_np.reparent_to(visual_np)
         self.follow_np.reparent_to(visual_np)
         visual_np.set_pos(pos)
+        visual_np.set_hpr(hpr)
 
     # noinspection PyArgumentList
     def generate_spheroid(self):
@@ -128,8 +131,10 @@ class Demo(ShowBase):
             *[random.uniform(-100.0, 100.0) for _ in range(2)],
             random.uniform(50.0, 400.0)
         )
+        hpr = Vec3(*[random.random() * 360 for _ in range(3)])
         s = Spheroid(bounding_box)
         s.subdivide_dist(4)
+        s.geom_store.normals_as_colors()
         geom_node = s.geom_node
         spheroid_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
@@ -141,22 +146,20 @@ class Demo(ShowBase):
         spheroid_np.reparent_to(visual_np)
         self.follow_np.reparent_to(visual_np)
         visual_np.set_pos(pos)
+        visual_np.set_hpr(hpr)
 
     # noinspection PyArgumentList
     def generate_cylinder(self):
         start_point = Vec3(*[random.uniform(-30.0, 30.0) for _ in range(3)])
-        end_point = Vec3(*[random.uniform(-30.0, 30.0) for _ in range(3)])
-        end_point += start_point
+        end_point = -start_point
         radii = [random.randint(0, 10) for _ in range(2)]
         pos = Vec3(
             *[random.uniform(-100.0, 100.0) for _ in range(2)],
             random.uniform(50.0, 400.0)
         )
-        color = tuple((end_point - start_point).normalized() * 0.5 + 0.5)
-        color += (1.,)
         c = SingleCylinder(12, start_point, radii[0], end_point, radii[1])
-        c.geom_store.set_color(color)
         c.subdivide_dist(4)
+        c.geom_store.normals_as_colors()
         geom_node = c.geom_node
         cylinder_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
