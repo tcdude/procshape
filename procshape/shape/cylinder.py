@@ -11,6 +11,16 @@ from procshape.shape import Shape
 
 
 class SingleCylinder(Shape):
+    """
+    Creates a Cylinder Shape (or a cone if either the ``start_radius`` or the
+     ``end_radius`` is set to 0) with flat ends.
+     Arguments:
+         circle_points: Number of points on the cylinder
+         start_point: Arbitrary tuple (x, y, z) as start point (origin)
+         start_radius: Zero or positive float
+         end_point: Arbitrary tuple (x, y, z) as end point
+         end_radius: Zero or positive float
+    """
     def __init__(
             self,
             circle_points,
@@ -21,6 +31,12 @@ class SingleCylinder(Shape):
     ):
         # type: (int, V3, float, V3, float) -> None
         super(SingleCylinder, self).__init__('CylinderShape')
+        if start_radius == end_radius == 0:
+            raise ValueError('Arguments start_radius and end_radius cannot '
+                             'both be 0!')
+        if start_radius < 0 or end_radius < 0:
+            raise ValueError('Expected zero or positive float for arguments: '
+                             'start__radius/end_radius')
         self.__circle_points__ = circle_points
         self.__start_point__ = Vec3(start_point)
         self.__start_radius__ = start_radius
@@ -60,7 +76,11 @@ class SingleCylinder(Shape):
             [self.geom_store.add_vertex(tuple(p), color) for p in end_circle],
             [self.geom_store.add_vertex(tuple(self.__end_point__), color)]
         ]
-        for i in range(3):
+        if self.__start_radius__ == 0:
+            vertex_ids.pop(1)
+        elif self.__end_radius__ == 0:
+            vertex_ids.pop(2)
+        for i in range(len(vertex_ids) - 1):
             for upper, lower in get_triangle_strip(
                     len(vertex_ids[i + 1]),
                     len(vertex_ids[i])
