@@ -184,10 +184,22 @@ class GeomStore(object):
     def colors(self):
         return self.__colors__
 
+    def deduplicate_vertices(self):
+        """Removes duplicate vertices in the GeomStore"""
+        combined = np.empty((len(self.vertices), 7), dtype=np.float32)
+        combined[:, :3] = self.vertices
+        combined[:, -4:] = self.colors
+        arr, ids = np.unique(combined, return_inverse=True, axis=0)
+        self.__vertices__ = arr[:, :3]
+        self.__colors__ = arr[:, -4:]
+        self.__triangles__ = ids[self.triangles]
+
     def to_unit_sphere(self):
+        """Sets every vertex to unit length with origin (0, 0, 0)"""
         self.__vertices__ = self.get_vertex_normals()
 
     def get_vertex_normals(self):
+        """Returns vertices normalized to unit length with origin (0, 0, 0)"""
         lengths = np.sqrt(
             (self.vertices ** 2).sum(
                 axis=1
@@ -242,11 +254,13 @@ class GeomStore(object):
 
     def set_color(self, color, selection=None):
         # type: (V4, Optional[Union[List[int, ...], Tuple[int, ...]]]) -> None
+        """Sets ``color`` for all vertices, or a ``selection`` of vertices"""
         ids = selection or range(len(self.colors))
         for i in ids:
             self.__colors__[i] = color
 
     def normals_as_colors(self):
+        """Uses unit length from origin (0, 0, 0) as vertex color"""
         normals = self.get_vertex_normals()
         colors = np.empty((len(normals), 4), dtype=np.float32)
         colors[:, :3] = normals * 0.5 + 0.5
@@ -268,7 +282,7 @@ class GeomStore(object):
 
     def subdivide_mesh_dist(self, target_distance=2.0):
         # type: (Optional[float]) -> None
-        """Subdivides mesh until triangle side length < ``target_distance``"""
+        """Subdivides mesh until triangle hypotenuse < ``target_distance``"""
         v, t, c = subdivide_triangles_dist(
             self.vertices,
             self.triangles,
