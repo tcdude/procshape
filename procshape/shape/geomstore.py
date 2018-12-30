@@ -10,7 +10,6 @@ from typing import Tuple
 from typing import Union
 
 import numpy as np
-from numba import jit
 
 from panda3d.core import Geom
 from panda3d.core import GeomNode
@@ -20,138 +19,14 @@ from panda3d.core import GeomVertexFormat
 from panda3d.core import GeomVertexWriter
 from panda3d.core import LVector3f
 
+from procshape.helpers.shapetools import get_vertex_id
+from procshape.helpers.shapetools import subdivide_triangles
+from procshape.helpers.shapetools import subdivide_triangles_dist
 from procshape.helpers.types import C
 from procshape.helpers.types import NPA
 from procshape.helpers.types import V3
 from procshape.helpers.types import V4
-
-
-def get_vertex_id(point, color, vertices, colors):
-    # type: (V3, V4, NPA, NPA) -> int
-    """Returns matching array index or -1 if none was found"""
-    for i in range(len(vertices)):
-        res = True
-        for k in range(4):
-            if k < 3:
-                if point[k] != vertices[i][k] or color[k] != colors[i][k]:
-                    res = False
-                    break
-            else:
-                if color[k] != colors[i][k]:
-                    res = False
-                    break
-        if res:
-            return i
-    return -1
-
-
-# @jit(parallel=True)
-def subdivide_triangles(vertices, triangles, colors, subdivisions=1):
-    # type: (NPA, NPA, NPA, int) -> Tuple[NPA, NPA, NPA]
-    """Subdivides every triangle on its longest side ``subdivisions`` times"""
-    distance_vec = (vertices[np.roll(triangles, -1, 1)] - vertices[triangles])
-    indices = (distance_vec ** 2).sum(axis=2).argmax(axis=1)
-    assert(len(distance_vec) == len(indices))
-    old_tri_len = len(triangles)
-    new_triangles = np.empty((old_tri_len * 2, 3), dtype=np.int64)
-    new_triangles[:old_tri_len] = triangles.copy()
-    old_vert_len = len(vertices)
-    new_vertices = np.empty(
-        (old_vert_len + old_tri_len, 3),
-        dtype=np.float32
-    )
-    new_vertices[:old_vert_len] = vertices.copy()
-    new_colors = np.empty(
-        (old_vert_len + old_tri_len, 4),
-        dtype=np.float32
-    )
-    new_colors[:old_vert_len] = colors.copy()
-    for i, start_idx in enumerate(indices):
-        new_tri = triangles[i].copy()
-        dist = distance_vec[i, start_idx] * 0.5
-        new_point = dist + vertices[triangles[i, start_idx]]
-        new_point_id = old_vert_len + i
-        new_vertices[new_point_id] = new_point
-        to_idx = (start_idx + 1) % 3
-        new_color = new_colors[triangles[i][start_idx]]
-        new_color += new_colors[triangles[i][to_idx]]
-        new_color *= 0.5
-        new_colors[new_point_id] = new_color
-        new_triangles[i][to_idx] = new_point_id
-        new_tri[start_idx] = new_point_id
-        new_triangles[i + old_tri_len] = new_tri
-    if subdivisions > 1:
-        return subdivide_triangles(
-            new_vertices,
-            new_triangles,
-            new_colors,
-            subdivisions - 1
-        )
-    else:
-        return new_vertices, new_triangles, new_colors
-
-
-def subdivide_triangles_dist(vertices, triangles, colors, target_distance=2.0):
-    # type: (NPA, NPA, NPA, float) -> Tuple[NPA, NPA, NPA]
-    _check_dist = target_distance ** 2
-    num_new_rows = 1
-    while num_new_rows:
-        if triangles.dtype != np.int64:
-            print(triangles.dtype, len(triangles))
-        dist_vec = (vertices[np.roll(triangles, -1, 1)] - vertices[triangles])
-        len_vec = (dist_vec ** 2).sum(axis=2)
-        vec_max = len_vec.max(axis=1)
-        rows = np.where(vec_max > _check_dist)[0]
-        num_new_rows = len(rows)
-        if num_new_rows == 0:
-            break
-        indices = len_vec[rows].argmax(axis=1)
-        colors, triangles, vertices = _subdivide(vertices, triangles, colors,
-                                                 indices, rows, dist_vec,
-                                                 num_new_rows)
-
-    return vertices, triangles, colors
-
-
-@jit(nopython=True)
-def _subdivide(vertices, triangles, colors, indices, rows, distance_vec,
-               num_new_rows):
-    # type: (NPA, NPA, NPA, NPA, NPA, NPA, int) -> Tuple[NPA, NPA, NPA]
-    old_tri_len = len(triangles)
-    new_triangles = np.empty(
-        (old_tri_len + num_new_rows, 3),
-        dtype=np.int64
-    )
-    new_triangles[:old_tri_len] = triangles.copy()
-    old_vert_len = len(vertices)
-    new_vertices = np.empty(
-        (old_vert_len + num_new_rows, 3),
-        dtype=np.float32
-    )
-    new_vertices[:old_vert_len] = vertices.copy()
-    new_colors = np.empty(
-        (old_vert_len + num_new_rows, 4),
-        dtype=np.float32
-    )
-    new_colors[:old_vert_len] = colors.copy()
-    for i, start_idx in enumerate(indices):
-        new_tri = triangles[rows[i]].copy()
-        dist = distance_vec[rows[i], start_idx] * 0.5
-        new_point = dist + vertices[triangles[rows[i], start_idx]]
-        new_point_id = old_vert_len + i
-        new_vertices[new_point_id] = new_point
-        to_idx = (start_idx + 1) % 3
-        new_color = new_colors[triangles[rows[i]][start_idx]]
-        new_color += new_colors[triangles[rows[i]][to_idx]]
-        new_color *= 0.5
-        new_colors[new_point_id] = new_color
-        new_triangles[rows[i]][to_idx] = new_point_id
-        new_tri[start_idx] = new_point_id
-        new_triangles[i + old_tri_len] = new_tri
-    vertices = new_vertices
-    triangles = new_triangles
-    colors = new_colors
-    return colors, triangles, vertices
+from procshape.helpers.vectormath import point_on_line_dist
 
 
 class GeomStore(object):
@@ -164,7 +39,7 @@ class GeomStore(object):
      per triangle, make sure to set the same value on each vertex passed to the
      GeomStore.add_triangle() method.
     Caution: You need to use a shader that calculates the face normal on
-     the fly, since there are no normals calculated. See https://bit.ly/2QOlfbh
+     the fly, since there are no normals stored. See https://bit.ly/2QOlfbh
     """
 
     def __init__(self):
@@ -194,6 +69,58 @@ class GeomStore(object):
         self.__colors__ = arr[:, -4:]
         self.__triangles__ = ids[self.triangles]
 
+    def reduce_triangles(self, factor=0.5, bounding_box=None, origin=None):
+        # type: (Optional[float], Optional[V3], Optional[V3]) -> None
+        """
+        Reduce triangle count in GeomStore. Optionally can be constrained by
+        a ``bounding_box`` and if needed, offsetting the ``origin`` of the
+        ``bounding_box``. In this case, only triangles that lie entirely inside
+        the specified ``bounding_box`` (and not on the border) will be
+        considered for the reduction.
+
+        Arguments:
+            factor: removes triangles until ceil(``factor`` * triangle_count)
+                triangles remain. Must be in range 0 < ``factor`` < 1
+            bounding_box: If passed, only triangles within the specified
+                positive/negative half distance will be reduced. If any of the
+                axes is set to 0, the entire bounds of that axis will be
+                included.
+            origin: If passed, serves as origin for the ``bounding_box`` arg
+        """
+        if origin is not None and bounding_box is None:
+            raise ValueError('Argument origin must be set in combination with '
+                             'the bounding_box argument!')
+        if not (0 < factor < 1):
+            raise ValueError('Argument factor must meet: 0 < factor < 1')
+        verts = self.vertices
+        if bounding_box is None:
+            tri_ids = list(range(len(self.triangles)))
+        else:
+            bb = []
+            for i, v in enumerate(bounding_box):
+                if v == 0:
+                    bb.append(max(
+                        verts[:, i].max(),
+                        abs(verts[:, i].min())
+                    ))
+            bb = np.array(bb, dtype=np.float32)
+            bb_min = -bb
+            bb_max = bb
+            if origin is not None or origin != (0, 0, 0):
+                bb_min += np.array(origin, dtype=np.float32)
+                bb_max += np.array(origin, dtype=np.float32)
+            tri_ids = np.unique(
+                np.where(
+                    (bb_min < verts[self.triangles]).all(axis=1) &
+                    (bb_max > verts[self.triangles]).all(axis=1)
+                )
+            )
+        triangles = self.triangles.copy()[tri_ids]
+        # Find Minimum Cost Collapse for each Edge
+
+        # Store a sequence to reduce the triangles, keeping the vertices intact
+        # Keep sequence in reverse to enable restoration of prior state
+
     def to_unit_sphere(self):
         """Sets every vertex to unit length with origin (0, 0, 0)"""
         self.__vertices__ = self.get_vertex_normals()
@@ -209,6 +136,10 @@ class GeomStore(object):
 
     def __mul__(self, other):
         # type: (Union[float, NPA, LVector3f]) -> bool
+        """
+        Multiplies the vertices by either scalar float, ndarray of shape (3,)
+        or panda3d.core.LVector3f
+        """
         if isinstance(other, float):
             self.__vertices__ *= other
             return True
@@ -219,6 +150,75 @@ class GeomStore(object):
         else:
             try:
                 self.__vertices__ *= np.array(other, dtype=np.float32)
+            except ValueError:
+                pass
+            else:
+                return True
+        raise ValueError('Expected scalar float, panda3d Vec3 or ndarray '
+                         f'of shape (3, ), got {type(other)} instead.')
+
+    def __add__(self, other):
+        # type: (Union[float, NPA, LVector3f]) -> bool
+        """
+        Add either scalar float, ndarray of shape (3,) or panda3d.core.LVector3f
+        to the vertices.
+        """
+        if isinstance(other, float):
+            self.__vertices__ += other
+            return True
+        elif isinstance(other, NPA):
+            if other.shape == (3,):
+                self.__vertices__ += other
+                return True
+        else:
+            try:
+                self.__vertices__ += np.array(other, dtype=np.float32)
+            except ValueError:
+                pass
+            else:
+                return True
+        raise ValueError('Expected scalar float, panda3d Vec3 or ndarray '
+                         f'of shape (3, ), got {type(other)} instead.')
+
+    def __sub__(self, other):
+        # type: (Union[float, NPA, LVector3f]) -> bool
+        """
+        Subtract either scalar float, ndarray of shape (3,) or
+        panda3d.core.LVector3f from the vertices.
+        """
+        if isinstance(other, float):
+            self.__vertices__ -= other
+            return True
+        elif isinstance(other, NPA):
+            if other.shape == (3,):
+                self.__vertices__ -= other
+                return True
+        else:
+            try:
+                self.__vertices__ -= np.array(other, dtype=np.float32)
+            except ValueError:
+                pass
+            else:
+                return True
+        raise ValueError('Expected scalar float, panda3d Vec3 or ndarray '
+                         f'of shape (3, ), got {type(other)} instead.')
+
+    def __truediv__(self, other):
+        # type: (Union[float, NPA, LVector3f]) -> bool
+        """
+        Divides vertices by either scalar float, ndarray of shape (3,) or
+        panda3d.core.LVector3f.
+        """
+        if isinstance(other, float):
+            self.__vertices__ /= other
+            return True
+        elif isinstance(other, NPA):
+            if other.shape == (3,):
+                self.__vertices__ /= other
+                return True
+        else:
+            try:
+                self.__vertices__ /= np.array(other, dtype=np.float32)
             except ValueError:
                 pass
             else:
