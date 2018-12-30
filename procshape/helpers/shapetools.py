@@ -11,8 +11,31 @@ from procshape.helpers.types import V3
 from procshape.helpers.types import V4
 
 
-def compute_edge_collapse_cost(vertices, triangles, face_normals):
+@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
+def get_min_edge_collapse_cost(vertices, triangles, face_normals):
+    # type: (NPA, NPA, NPA) -> NPA
+    """Returns the edge with the lowest collapse cost"""
     edges = get_edges(triangles)
+    edge_lengths = vertices[edges[..., 0, 1]] - vertices[edges[..., 0, 0]]
+    edge_lengths = (edge_lengths ** 2).sum(axis=-1)
+    costs = np.zeros(edge_lengths.shape, dtype=np.float32)
+    for i, edge in enumerate(edges):
+        neighbors = get_vertex_triangles(triangles, edge[0, 0])
+        curvature = 0.0
+        mincurv = 1.0
+        for neighbor in neighbors:
+            dotprod_a = sum([
+                face_normals[edge[1, 0], d] * face_normals[neighbor, d]
+                for d in [0, 1, 2]
+            ])
+            dotprod_b = sum([
+                face_normals[edge[1, 1], d] * face_normals[neighbor, d]
+                for d in [0, 1, 2]
+            ])
+            mincurv = min((1.0 - dotprod_a) / 2.0, (1.0 - dotprod_b) / 2.0)
+        curvature = max(curvature, mincurv)
+        costs[i] = curvature * edge_lengths[i]
+    return edges[costs.argmin(), 0]
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
