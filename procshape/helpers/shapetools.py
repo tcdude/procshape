@@ -1,6 +1,7 @@
 """
 Helper methods for the procshape.shape module
 """
+from typing import List
 from typing import Tuple
 
 import numpy as np
@@ -9,33 +10,103 @@ from numba import jit
 from procshape.helpers.types import NPA
 from procshape.helpers.types import V3
 from procshape.helpers.types import V4
+from procshape.helpers.vectormath import triangle_face_normal
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
-def get_min_edge_collapse_cost(vertices, triangles, face_normals):
-    # type: (NPA, NPA, NPA) -> NPA
-    """Returns the edge with the lowest collapse cost"""
+def collapse_min_cost_edge(vertices, triangles, face_normals, edges, costs):
+    # type: (NPA, NPA, NPA, NPA, NPA) -> Tuple[NPA, NPA, NPA, NPA, List]
+    """
+    Returns a tuple: (``triangles``, ``face_normals``, ``edges``, ``costs``,
+    ``history``), where ``triangles``, ``face_normals``, ``edges`` and ``costs``
+    are the updated arrays after the collapse and history is a list of actions
+    to reverse the collapse (e.g. [(triangle_old, triangle_new), ...] where
+    triangle_old and triangle_new stand for the triangle before and after the
+    collapse. triangle_new can be either an array of the triangle indices for
+    modified triangles and None for removed triangles)
+
+    Arguments:
+        vertices: numpy.ndarray of vertices as indexed by ``triangles`` and
+            ``edges``
+        triangles: numpy.ndarray of triangle indices
+        face_normals: numpy.ndarray of face normals indexed identically to
+            ``triangles``
+        edges: numpy.ndarray of all collapsible edges in the mesh
+        costs: numpy.ndarray of the cost for an edge collapse, indexed
+            identically to ``edges``
+    """
+    cost_min = costs.argmin()
+    u = edges[cost_min, 0]
+    v = edges[cost_min, 1]
+    history = [
+        (triangles[edges[cost_min, 2]].copy(), None),
+        (triangles[edges[cost_min, 3]].copy(), None),
+    ]
+
+    # Remove and update triangles
+    triangles = np.delete(triangles, edges[cost_min, 2:])
+    neighbors = get_vertex_triangles(triangles, u)
+    for neighbor in neighbors:
+        old = triangles[neighbor].copy()
+        triangles[neighbor, np.argwhere(triangles[neighbor] == u)[0, 0]] = v
+        new = triangles[neighbor].copy()
+        history.append((old, new))
+
+    # Recalculate face normal
+    new_normals = triangle_face_normal(
+        vertices[triangles[neighbors, 0]],
+        vertices[triangles[neighbors, 1]],
+        vertices[triangles[neighbors, 2]],
+        True
+    )
+    face_normals[neighbors] = new_normals
+
+    # Remove and update edges
+    edges = np.delete(edges, cost_min)
+    costs = np.delete(costs, cost_min)
+    edges[np.argwhere(edges[..., 0] == u).T[0], 0] = v
+    edges[np.argwhere(edges[..., 1] == u).T[0], 1] = v
+
+    # Recompute edge collapse cost for v
+    sub_edges, sub_costs = compute_edge_collapse_cost(
+        vertices,
+        triangles[np.argwhere(triangles == v).T[0]],
+        face_normals
+    )
+    for i, edge in enumerate(sub_edges):
+        edge_id = np.where(
+            (edges[..., 0] == edge[0]) &
+            (edges[..., 1] == edge[1])
+        )[0][0]
+        costs[edge_id] = sub_costs[i]
+    return triangles, face_normals, edges, costs, history
+
+
+@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
+def compute_edge_collapse_cost(vertices, triangles, face_normals):
+    # type: (NPA, NPA, NPA) -> Tuple[NPA, NPA]
+    """Returns a tuple: (edges, costs) for each valid edge in the mesh"""
     edges = get_edges(triangles)
-    edge_lengths = vertices[edges[..., 0, 1]] - vertices[edges[..., 0, 0]]
+    edge_lengths = vertices[edges[..., 1]] - vertices[edges[..., 0]]
     edge_lengths = (edge_lengths ** 2).sum(axis=-1)
     costs = np.zeros(edge_lengths.shape, dtype=np.float32)
     for i, edge in enumerate(edges):
-        neighbors = get_vertex_triangles(triangles, edge[0, 0])
+        neighbors = get_vertex_triangles(triangles, edge[0])
         curvature = 0.0
         mincurv = 1.0
         for neighbor in neighbors:
             dotprod_a = sum([
-                face_normals[edge[1, 0], d] * face_normals[neighbor, d]
+                face_normals[edges[..., 2], d] * face_normals[neighbor, d]
                 for d in [0, 1, 2]
             ])
             dotprod_b = sum([
-                face_normals[edge[1, 1], d] * face_normals[neighbor, d]
+                face_normals[edges[..., 3], d] * face_normals[neighbor, d]
                 for d in [0, 1, 2]
             ])
             mincurv = min((1.0 - dotprod_a) / 2.0, (1.0 - dotprod_b) / 2.0)
         curvature = max(curvature, mincurv)
         costs[i] = curvature * edge_lengths[i]
-    return edges[costs.argmin(), 0]
+    return edges, costs
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
@@ -44,7 +115,7 @@ def get_edges(triangles):
     """
     Returns all joining edges found in ``triangles`` in the form of:
 
-    [[[u, v], [tri_id_from, tri_id_to]], ...]
+    [[u, v, tri_id_from, tri_id_to], ...]
 
     No edges are returned for triangles, that have one or more non joining
     edges. All edges are mapped twice, once for each direction (e.g. u->v, v->u)
@@ -60,11 +131,12 @@ def get_edges(triangles):
                 (check_sides[..., 1] == side[1])
             )
             if len(res[0]):
-                tmp_edges.append((side, [tri_id, res[0][0]]))
-                tmp_edges.append((np.flip(side), [res[0][0], tri_id]))
+                tmp_edges.append(list(side) + [tri_id, res[0][0]])
+                tmp_edges.append(list(np.flip(side)) + [res[0][0], tri_id])
         if len(tmp_edges) == 3:
             edges += tmp_edges
-    return np.unique(edges, axis=0)
+    edges = np.unique(edges, return_index=True, axis=0).astype(np.int64)
+    return edges
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)

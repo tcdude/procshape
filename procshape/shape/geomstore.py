@@ -26,7 +26,7 @@ from procshape.helpers.types import C
 from procshape.helpers.types import NPA
 from procshape.helpers.types import V3
 from procshape.helpers.types import V4
-from procshape.helpers.vectormath import point_on_line_dist
+from procshape.helpers.vectormath import triangle_face_normal
 
 
 class GeomStore(object):
@@ -46,6 +46,10 @@ class GeomStore(object):
         self.__vertices__ = None
         self.__colors__ = None
         self.__triangles__ = None
+        self.__face_normals__ = None
+        self.__edges__ = None
+        self.__costs__ = None
+        self.__lowest_dirty_triangle__ = -1
 
     @property
     def vertices(self):
@@ -58,6 +62,39 @@ class GeomStore(object):
     @property
     def colors(self):
         return self.__colors__
+
+    @property
+    def face_normals(self):
+        return self.__face_normals__
+
+    @property
+    def edges(self):
+        return self.__edges__
+
+    def update_face_normals(self):
+        """
+        Updates all face normals for triangles with id >=
+        self.__lowest_dirty_triangle__
+        """
+        if self.face_normals is None:
+            self.__face_normals__ = triangle_face_normal(
+                self.vertices[self.triangles[..., 0]],
+                self.vertices[self.triangles[..., 1]],
+                self.vertices[self.triangles[..., 2]],
+                True
+            )
+            self.__lowest_dirty_triangle__ = len(self.triangles)
+            return
+        face_normals = np.empty((len(self.triangles), 3), dtype=np.float32)
+        l_id = self.__lowest_dirty_triangle__
+        face_normals[:l_id] = self.face_normals[:l_id]
+        face_normals[l_id:] = triangle_face_normal(
+            self.vertices[self.triangles[l_id:, 0]],
+            self.vertices[self.triangles[l_id:, 1]],
+            self.vertices[self.triangles[l_id:, 2]],
+            True
+        )
+        self.__face_normals__ = face_normals
 
     def deduplicate_vertices(self):
         """Removes duplicate vertices in the GeomStore"""
@@ -325,6 +362,7 @@ class GeomStore(object):
                 [[v1_id, v2_id, v3_id]],
                 dtype=np.int64
             )
+            self.__lowest_dirty_triangle__ = 0
             return 0
         idx = len(self.__triangles__)
         self.__triangles__ = np.append(
@@ -332,6 +370,7 @@ class GeomStore(object):
             [[v1_id, v2_id, v3_id]],
             0
         )
+        self.__lowest_dirty_triangle__ = idx
         return idx
 
     # noinspection PyArgumentList
