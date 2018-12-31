@@ -38,7 +38,6 @@ def triangle_face_normal(p1, p2, p3, normalized=False):
     return normal
 
 
-@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
 def normalize(vertices):
     # type: (NPA) -> NPA
     """
@@ -53,22 +52,27 @@ def normalize(vertices):
     if vertices.shape[-1] != 3:
         raise ValueError(f'Expected numpy.ndarray of shape (..., 3), got '
                          f'{vertices.shape} instead!')
+    return _normalize(vertices)
+
+
+@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
+def _normalize(vertices):
     lengths = np.sqrt(
         (vertices ** 2).sum(axis=-1).reshape(*vertices.shape[:-1], 1)
     )
     return vertices / lengths
 
 
+@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
 def cross(va, vb):
     # type: (NPA, NPA) -> NPA
-    return np.array([
-        va[1] * vb[2] - vb[1] * va[2],
-        va[2] * vb[0] - vb[2] * va[0],
-        va[0] * vb[1] - vb[0] * va[1],
-    ], dtype=np.float32)
+    out = np.empty(va.shape, dtype=np.float32)
+    out[..., 0] = va[..., 1] * vb[..., 2] - vb[..., 1] * va[..., 2]
+    out[..., 1] = va[..., 2] * vb[..., 0] - vb[..., 2] * va[..., 0]
+    out[..., 2] = va[..., 0] * vb[..., 1] - vb[..., 0] * va[..., 1]
+    return out
 
 
-@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
 def dot(va, vb):
     # type: (NPA, NPA) -> NPA
     """
@@ -84,25 +88,9 @@ def dot(va, vb):
                          f'vb={type(vb)} instead!')
     if va.shape != vb.shape:
         raise ValueError('Arguments va and vb must be of the same shape!')
-    return sum([va[..., i] * vb[..., i] for i in range(va.shape[-1])])
+    return _dot(va, vb)
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
-def point_on_line_dist(lpa, lpb, p):
-    # type: (NPA, NPA, NPA) -> float
-    """
-    Returns the absolute difference between the distance from point ``lpa``
-    to point ``lpb`` and the sum of the distances of segments ``p`` - ``lpa``
-    and ``lpb`` - ``p``.
-    Can be used for checks if a point in 3D space lies or almost lies on the
-    line between ``lpa`` and ``lpb``
-
-    Arguments:
-         lpa: numpy.ndarray of shape (2,) or (3,) as point A in the line
-         lpb: numpy.ndarray of shape (2,) or (3,) as point B in the line
-         p: numpy.ndarray of shape (2,) or (3,) as point to check
-    """
-    line_dist = np.sqrt(((lpb - lpa) ** 2).sum())
-    seg_a_dist = np.sqrt(((p - lpa) ** 2).sum())
-    seg_b_dist = np.sqrt(((lpb - p) ** 2).sum())
-    return abs(line_dist - seg_a_dist - seg_b_dist)
+def _dot(va, vb):
+    return (va * vb).sum(axis=-1)
