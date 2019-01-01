@@ -10,7 +10,7 @@ from numba import jit
 from procshape.helpers.types import NPA
 from procshape.helpers.types import V3
 from procshape.helpers.types import V4
-from procshape.helpers.vectormath import triangle_face_normal
+from procshape.helpers import vectormath
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
@@ -53,7 +53,7 @@ def collapse_min_cost_edge(vertices, triangles, face_normals, edges, costs):
         history.append((old, new))
 
     # Recalculate face normal
-    new_normals = triangle_face_normal(
+    new_normals = vectormath.triangle_face_normal(
         vertices[triangles[neighbors, 0]],
         vertices[triangles[neighbors, 1]],
         vertices[triangles[neighbors, 2]],
@@ -109,7 +109,6 @@ def compute_edge_collapse_cost(vertices, triangles, face_normals):
     return edges, costs
 
 
-@jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
 def get_edges(triangles):
     # type: (NPA) -> NPA
     """
@@ -126,17 +125,22 @@ def get_edges(triangles):
     for tri_id, triangle in enumerate(triangle_sides):
         tmp_edges = []
         for side in triangle:
+            print(side)
             res = np.where(
-                (check_sides[..., 0] == side[0]) &
-                (check_sides[..., 1] == side[1])
+                ((check_sides[..., 0] == side[0]) &
+                 (check_sides[..., 1] == side[1])) |
+                ((check_sides[..., 0] == side[1]) &
+                 (check_sides[..., 1] == side[0]))
             )
             if len(res[0]):
                 tmp_edges.append(list(side) + [tri_id, res[0][0]])
                 tmp_edges.append(list(np.flip(side)) + [res[0][0], tri_id])
         if len(tmp_edges) == 3:
             edges += tmp_edges
-    edges = np.unique(edges, return_index=True, axis=0).astype(np.int64)
-    return edges
+    if len(edges):
+        edges = np.unique(edges, return_index=True, axis=0).astype(np.int64)
+        return edges
+    return np.empty((0, 2), dtype=np.int64)
 
 
 @jit(nopython=True)  # Todo: test best speed with jit (off, nopython, parallel)
@@ -164,6 +168,21 @@ def get_vertex_id(point, color, vertices, colors):
 
 
 # @jit(parallel=True)
+def clean_up_mesh(vertices, triangles, colors):
+    combined = np.empty(vertices.shape[:-1] + (7, ), dtype=np.float32)
+    combined[..., :3] = vertices
+    combined[..., 3:] = colors
+    _, indices, inverse = np.unique(
+        combined,
+        return_index=True,
+        return_inverse=True,
+        axis=0)
+    vertices = vertices[indices]
+    colors = colors[indices]
+    triangles = inverse[triangles]
+    return vertices, triangles, colors
+
+
 def subdivide_triangles(vertices, triangles, colors, subdivisions=1):
     # type: (NPA, NPA, NPA, int) -> Tuple[NPA, NPA, NPA]
     """Subdivides every triangle on its longest side ``subdivisions`` times"""
@@ -191,13 +210,17 @@ def subdivide_triangles(vertices, triangles, colors, subdivisions=1):
         new_point_id = old_vert_len + i
         new_vertices[new_point_id] = new_point
         to_idx = (start_idx + 1) % 3
-        new_color = new_colors[triangles[i][start_idx]]
-        new_color += new_colors[triangles[i][to_idx]]
+        new_color = colors[triangles[i][start_idx]].copy()
+        new_color += colors[triangles[i][to_idx]].copy()
         new_color *= 0.5
         new_colors[new_point_id] = new_color
         new_triangles[i][to_idx] = new_point_id
         new_tri[start_idx] = new_point_id
         new_triangles[i + old_tri_len] = new_tri
+    new_vertices, new_triangles, new_colors = clean_up_mesh(
+        new_vertices,
+        new_triangles,
+        new_colors)
     if subdivisions > 1:
         return subdivide_triangles(
             new_vertices,
@@ -214,8 +237,6 @@ def subdivide_triangles_dist(vertices, triangles, colors, target_distance=2.0):
     _check_dist = target_distance ** 2
     num_new_rows = 1
     while num_new_rows:
-        if triangles.dtype != np.int64:
-            print(triangles.dtype, len(triangles))
         dist_vec = (vertices[np.roll(triangles, -1, 1)] - vertices[triangles])
         len_vec = (dist_vec ** 2).sum(axis=2)
         vec_max = len_vec.max(axis=1)
@@ -227,7 +248,10 @@ def subdivide_triangles_dist(vertices, triangles, colors, target_distance=2.0):
         colors, triangles, vertices = _subdivide(vertices, triangles, colors,
                                                  indices, rows, dist_vec,
                                                  num_new_rows)
-
+        vertices, triangles, colors = clean_up_mesh(
+            vertices,
+            triangles,
+            colors)
     return vertices, triangles, colors
 
 
@@ -255,12 +279,12 @@ def _subdivide(vertices, triangles, colors, indices, rows, distance_vec,
     for i, start_idx in enumerate(indices):
         new_tri = triangles[rows[i]].copy()
         dist = distance_vec[rows[i], start_idx] * 0.5
-        new_point = dist + vertices[triangles[rows[i], start_idx]]
+        new_point = vertices[triangles[rows[i], start_idx]] + dist
         new_point_id = old_vert_len + i
         new_vertices[new_point_id] = new_point
         to_idx = (start_idx + 1) % 3
-        new_color = new_colors[triangles[rows[i]][start_idx]]
-        new_color += new_colors[triangles[rows[i]][to_idx]]
+        new_color = colors[triangles[rows[i]][start_idx]].copy()
+        new_color += colors[triangles[rows[i]][to_idx]].copy()
         new_color *= 0.5
         new_colors[new_point_id] = new_color
         new_triangles[rows[i]][to_idx] = new_point_id
