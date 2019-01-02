@@ -40,7 +40,6 @@ template<class T> void remove(std::vector<T> & c, T t) {
 }
 
 
-std::vector<Vertex *> vertices;
-std::vector<Triangle *> triangles;
+
 
 #endif

@@ -8,15 +8,18 @@
 
 #include <assert.h>
 
+#include "common.hpp"
 #include "vertex.hpp"
 
-Vertex::Vertex(LVecBase3f v, int _id) {
+Vertex::
+Vertex(LVecBase3f *v, int _id) {
 	position = v;
 	id = _id;
 	vertices.push_back(this);
 }
 
-Vertex::~Vertex(){
+Vertex::
+~Vertex(){
 	assert(face.size() == 0);
 	while(neighbor.size()) {
 		remove(neighbor[0]->neighbor, this);
@@ -24,7 +27,8 @@ Vertex::~Vertex(){
 	}
 	remove(vertices, this);
 }
-void Vertex::remove_if_non_neighbor(Vertex *n) {
+void Vertex::
+remove_if_non_neighbor(Vertex *n) {
 	// removes n from neighbor Array if n isn't a neighbor.
 	if(!contains(neighbor,n)) return;
 	for (unsigned int i = 0; i<face.size(); i++) {
