@@ -1,9 +1,73 @@
-1546475705
+1546547003
 3 3
 9 geomstore 4 Kshb 9 geomstore 
-0
-0
-0
+7
+8 9 GeomStore 0 4 15 20 GeomStore::GeomStore 0 2 1 2 0
+85
+GeomStore::GeomStore(void);
+inline GeomStore::GeomStore(GeomStore const &) = default;
+
+9 10 ~GeomStore 0 6 15 21 GeomStore::~GeomStore 0 0 0
+36
+virtual GeomStore::~GeomStore(void);
+
+10 10 add_vertex 0 4 15 21 GeomStore::add_vertex 0 1 3 0
+54
+int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c);
+
+11 12 add_triangle 0 4 15 23 GeomStore::add_triangle 0 1 4 0
+52
+int GeomStore::add_triangle(int v0, int v1, int v2);
+
+12 19 subdivide_triangles 0 4 15 30 GeomStore::subdivide_triangles 0 1 5 0
+43
+void GeomStore::subdivide_triangles(int s);
+
+13 28 subdivide_triangles_distance 0 4 15 39 GeomStore::subdivide_triangles_distance 0 1 6 0
+54
+void GeomStore::subdivide_triangles_distance(float d);
+
+14 6 extend 0 4 15 17 GeomStore::extend 0 1 7 0
+41
+void GeomStore::extend(GeomStore *other);
+
+7
+1 0 0 7 2 16 9 0 0 0 
+2 0 0 7 2 16 9 0 0 1 6 param0 0 17  
+3 0 0 6 4 23 0 0 0 3 4 this 3 16  1 v 1 19  1 c 1 21  
+4 0 0 6 5 23 0 0 0 4 4 this 3 16  2 v0 1 23  2 v1 1 23  2 v2 1 23  
+5 0 0 4 6 24 0 0 0 2 4 this 3 16  1 s 1 23  
+6 0 0 4 7 24 0 0 0 2 4 this 3 16  1 d 1 25  
+7 0 0 4 8 24 0 0 0 2 4 this 3 16  5 other 1 16  
+11
+15 9 GeomStore 0 26625 9 GeomStore 9 GeomStore 0 0 0 1 8 9 0 5 10 11 12 13 14 0 0 0 0 0 0
+
+16 11 GeomStore * 0 8576 11 GeomStore * 11 GeomStore * 0 0 15 0 0 0 0 0 0 0 0 0 0
+
+17 17 GeomStore const * 0 8576 17 GeomStore const * 17 GeomStore const * 0 0 18 0 0 0 0 0 0 0 0 0 0
+
+18 15 GeomStore const 0 8832 15 GeomStore const 15 GeomStore const 0 0 15 0 0 0 0 0 0 0 0 0 0
+
+19 12 LVecBase3f * 0 8576 12 LVecBase3f * 12 LVecBase3f * 0 0 20 0 0 0 0 0 0 0 0 0 0
+
+20 10 LVecBase3f 0 2048 10 LVecBase3f 10 LVecBase3f 0 0 0 0 0 0 0 0 0 0 0 0 77
+/**
+ * This is the base class for all three-component vectors and points.
+ */
+
+21 12 LVecBase4f * 0 8576 12 LVecBase4f * 12 LVecBase4f * 0 0 22 0 0 0 0 0 0 0 0 0 0
+
+22 10 LVecBase4f 0 2048 10 LVecBase4f 10 LVecBase4f 0 0 0 0 0 0 0 0 0 0 0 0 77
+/**
+ * This is the base class for all three-component vectors and points.
+ */
+
+23 3 int 0 8194 3 int 3 int 0 1 0 0 0 0 0 0 0 0 0 0 0
+
+24 4 void 0 8194 4 void 4 void 0 6 0 0 0 0 0 0 0 0 0 0 0
+
+25 5 float 0 8194 5 float 5 float 0 2 0 0 0 0 0 0 0 0 0 0 0
+
 0
 0
 0

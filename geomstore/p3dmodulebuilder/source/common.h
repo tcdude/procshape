@@ -9,8 +9,10 @@
 #include <stdio.h> 
 #include <vector>
 
-#include "triangle.hpp"
-#include "vertex.hpp"
+#include "pandabase.h"
+
+#include "triangle.h"
+#include "vertex.h"
 
 template<class T> int contains(const std::vector<T> & c, const T & t) { 
   return std::count(begin(c), end(c), t); 

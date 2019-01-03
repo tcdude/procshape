@@ -4,6 +4,9 @@
 
 #include "py_panda.h"
 
+extern const struct LibraryDef geomstore_moddef;
+extern void Dtool_geomstore_RegisterTypes();
+extern void Dtool_geomstore_BuildInstants(PyObject *module);
 
 #if PY_MAJOR_VERSION >= 3 || !defined(NDEBUG)
 #ifdef _WIN32
@@ -36,11 +39,13 @@ static struct PyModuleDef py_geomstore_module = {
 
 PyObject *PyInit_geomstore() {
   PyImport_Import(PyUnicode_FromString("panda3d.core"));
+  Dtool_geomstore_RegisterTypes();
 
-  const LibraryDef *defs[] = {nullptr};
+  const LibraryDef *defs[] = {&geomstore_moddef, nullptr};
 
   PyObject *module = Dtool_PyModuleInitHelper(defs, &py_geomstore_module);
   if (module != nullptr) {
+    Dtool_geomstore_BuildInstants(module);
   }
   return module;
 }
@@ -54,11 +59,13 @@ void initgeomstore() {
 
 void initgeomstore() {
   PyImport_Import(PyUnicode_FromString("panda3d.core"));
+  Dtool_geomstore_RegisterTypes();
 
-  const LibraryDef *defs[] = {nullptr};
+  const LibraryDef *defs[] = {&geomstore_moddef, nullptr};
 
   PyObject *module = Dtool_PyModuleInitHelper(defs, "geomstore");
   if (module != nullptr) {
+    Dtool_geomstore_BuildInstants(module);
   }
 }
 

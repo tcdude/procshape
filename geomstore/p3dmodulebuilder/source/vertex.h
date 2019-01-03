@@ -12,22 +12,23 @@
 #include <stdlib.h>
 #include <vector>
 
+#include "pandabase.h"
 #include "luse.h"
 
-#include "common.hpp"
-#include "triangle.hpp"
+#include "common.h"
+#include "triangle.h"
 class Triangle;
 
 class Vertex {
   public:
-    LVecBase3f *position;  // location of point in euclidean space
-    LVecBase3f *normal;  // location of point in euclidean space
+    LVecBase3f position;  // location of point in euclidean space
+    LVecBase3f normal;  // location of point in euclidean space
     int id;  // place of vertex in original Array
     std::vector<Vertex *> neighbor;  // adjacent vertices
     std::vector<Triangle *> face;  // adjacent triangles
     float objdist;  // cached cost of collapsing edge
     Vertex *collapse;  // candidate vertex for collapse
-    Vertex(LVecBase3f *v, int _id);
+    Vertex(LVecBase3f v, int _id);
     virtual ~Vertex();
     void remove_if_non_neighbor(Vertex *n);
 };

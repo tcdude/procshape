@@ -10,14 +10,14 @@
 #include <vector>
 #include <assert.h>
 
-#include "common.hpp"
-#include "vertex.hpp"
+#include "common.h"
+#include "vertex.h"
 
 std::vector<Vertex *> vertices;
 
 
 Vertex::
-Vertex(LVecBase3f *v, int _id) {
+Vertex(LVecBase3f v, int _id) {
 	position = v;
 	id = _id;
 	vertices.push_back(this);
@@ -36,8 +36,8 @@ void Vertex::
 remove_if_non_neighbor(Vertex *n) {
 	// removes n from neighbor Array if n isn't a neighbor.
 	if(!contains(neighbor,n)) return;
-	for (unsigned int i = 0; i<face.size(); i++) {
+	for (unsigned int i = 0; i < face.size(); i++) {
 		if(face[i]->has_vertex(n)) return;
 	}
-	remove(neighbor,n);
+	remove(neighbor, n);
 }

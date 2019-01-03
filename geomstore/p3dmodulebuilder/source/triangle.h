@@ -12,10 +12,11 @@
 
 #include <vector>
 
+#include "pandabase.h"
 #include "luse.h"
 
-#include "common.hpp"
-#include "vertex.hpp"
+#include "common.h"
+#include "vertex.h"
 class Vertex;
 
 class Triangle {
@@ -23,7 +24,7 @@ class Triangle {
     Triangle(Vertex *v0, Vertex *v1, Vertex *v2);
     virtual ~Triangle();
     Vertex *vertex[3];  // the 3 points that make this tri
-    LVecBase3f  *normal;  // unit vector orthogonal to this face
+    LVecBase3f normal;  // unit vector orthogonal to this face
     void compute_normal();
     void replace_vertex(Vertex *v_old, Vertex *v_new);
     int has_vertex(Vertex *v);
