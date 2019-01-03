@@ -9,6 +9,8 @@ local_test/
 
 # VSCode
 .vscode/
+*/build/
+geomstore/p3dmodulebuilder/linux_amd64_panda1.10.0_py36/
 
 # C extensions
 *.so

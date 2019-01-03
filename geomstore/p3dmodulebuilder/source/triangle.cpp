@@ -6,10 +6,14 @@
  * by Stan Melax (c) 1998
  */
 
-
+#include <stdio.h> 
+#include <vector>
 #include <assert.h>
 
 #include "triangle.hpp"
+#include "common.hpp"
+
+std::vector<Triangle *> triangles;
 
 Triangle::
 Triangle(Vertex *v0, Vertex *v1, Vertex *v2) {

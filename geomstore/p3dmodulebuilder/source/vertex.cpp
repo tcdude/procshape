@@ -6,10 +6,15 @@
  * by Stan Melax (c) 1998
  */
 
+#include <stdio.h> 
+#include <vector>
 #include <assert.h>
 
 #include "common.hpp"
 #include "vertex.hpp"
+
+std::vector<Vertex *> vertices;
+
 
 Vertex::
 Vertex(LVecBase3f *v, int _id) {
