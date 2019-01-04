@@ -15,7 +15,6 @@
 
 #include "pandabase.h"
 #include "luse.h"
-#include "xtensor/xarray.hpp"
 
 #include "common.h"
 #include "triangle.h"

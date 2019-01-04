@@ -8,6 +8,7 @@ Runs the interrogate and interrogate_module commands from Panda3D.
 import sys
 from os import listdir, chdir
 from os.path import join, isfile, isdir
+import re
 
 from panda3d.core import PandaSystem
 from common import debug_out, get_panda_bin_path, get_panda_include_path
@@ -35,9 +36,10 @@ def find_sources(base_dir):
     """ Collects all header files recursively """
     sources = []
     files = listdir(base_dir)
+    p = re.compile('.*\.(h|c)((pp|xx)?)$', flags=re.I)
     for f in files:
         fpath = join(base_dir, f)
-        if isfile(fpath) and check_ignore(f) and f.endswith(".h"):
+        if isfile(fpath) and check_ignore(f) and p.match(f) is not None:
             if f.endswith(".pb.h"):
                 continue # Skip protobuf
             sources.append(fpath)
@@ -63,6 +65,7 @@ def interrogate():
     cmd += ["-fnames", "-string", "-refcount", "-assert", "-python-native"]
     cmd += ["-S" + get_panda_include_path() + "/parser-inc"]
     cmd += ["-S" + get_panda_include_path() + "/"]
+    # cmd += ["-I/usr/local/lib/python3.6/dist-packages/numpy/core/include"]
 
     # Add all subdirectories
     for pth in listdir("."):
