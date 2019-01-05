@@ -42,7 +42,15 @@ class GeomStore {
     int __getbuffer__(PyObject *self, Py_buffer *view, int flags);
     void __releasebuffer__(PyObject *self, Py_buffer *view) const;
     std::vector<float> my_vec;
-    int operator+ (float v);
+    int operator + (float v);
+    int operator + (LVecBase3f v);
+    int operator - (float v);
+    int operator - (LVecBase3f v);
+    int operator * (float v);
+    int operator / (float v);
+  private:
+    std::vector<Vertex *> _vertices;
+    std::vector<Triangle *> _triangles;
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <assert.h>
 
 #include "geomstore.h"
 
@@ -18,13 +19,23 @@ GeomStore::
 
 int GeomStore::
 add_vertex(LVecBase3f v, LVecBase4f c) {
-  std::cout << my_vec[1] << std::endl;
-  return 0;
+  int id = this->_vertices.size();
+  Vertex *vert = &Vertex(v, c, id);
+  this->_vertices.push_back(vert);
+  // std::cout << my_vec[1] << std::endl;
+  return id;
 }
 
 int GeomStore:: 
 add_triangle(int v0, int v1, int v2) {
-  return 0;
+  int id = this->_triangles.size();
+  Triangle *tri = &Triangle(
+    this->_vertices[v0],
+    this->_vertices[v1],
+    this->_vertices[v2]
+  );
+  this->_triangles.push_back(tri);
+  return id;
 }
 
 void GeomStore::
@@ -37,22 +48,99 @@ subdivide_triangles_distance(float d) {
 
 }
 
+/**
+ * Extend this GeomStore with all Vertices and Triangles from other while
+ * leaving other intact
+ */
 void GeomStore::
 extend(GeomStore *other) {
+  int start_vertex_index = _vertices.size();
 
+  for (uint i = 0; i < other->_vertices.size(); i++) {
+    this->add_vertex(other->_vertices[i]->position, other->_vertices[i]->color);
+  }
+  
+  for (uint i = 0; i < other->_triangles.size(); i++) {
+    int v0 = other->_triangles[i]->vertex[0]->id + start_vertex_index;
+    int v1 = other->_triangles[i]->vertex[1]->id + start_vertex_index;
+    int v2 = other->_triangles[i]->vertex[2]->id + start_vertex_index;
+    this->add_triangle(v0, v1, v2);
+  }
 }
 
+/**
+ * Overloaded Operators for direct vertex manipulation
+ * TODO: Consider a filter mechanism in the class
+ */
+
 int GeomStore::
-operator+ (float v) {
-  for (uint i=0; i < my_vec.size(); i++) {
-    my_vec[i] += v;
+operator + (float v) {
+  if (v == 0) {
+    return 0;
+  }
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position += v;
   }
   return 0;
 }
 
+int GeomStore::
+operator + (LVecBase3f v) {
+  if (v == LVecBase3f(0.0f)) {
+    return 0;
+  }
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position += v;
+  }
+  return 0;
+}
 
 int GeomStore::
+operator - (float v) {
+  if (v == 0) {
+    return 0;
+  }
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position -= v;
+  }
+  return 0;
+}
+
+int GeomStore::
+operator - (LVecBase3f v) {
+  if (v == LVecBase3f(0.0f)) {
+    return 0;
+  }
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position -= v;
+  }
+  return 0;
+}
+
+int GeomStore::
+operator * (float v) {
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position *= v;
+  }
+  return 0;
+}
+
+int GeomStore::
+operator / (float v) {
+  assert(v != 0);
+  for (uint i = 0; i < _vertices.size(); i++) {
+    _vertices[i]->position /= v;
+  }
+  return 0;
+}
+
+/**
+ * This is used to implement the buffer protocol, in order to allow efficient
+ * access to vertex data through a Python multiview object.
+ */
+int GeomStore::
 __getbuffer__(PyObject *self, Py_buffer *view, int flags) {
+#if PY_VERSION_HEX >= 0x02060000
   int row_size;
   bool pad_fmt;
 
@@ -99,8 +187,14 @@ __getbuffer__(PyObject *self, Py_buffer *view, int flags) {
   view->suboffsets = nullptr;
 
   return 0;
+#else
+  return -1;
+#endif
 }
 
+/**
+ * Releases the buffer allocated by __getbuffer__.
+ */
 void GeomStore::
 __releasebuffer__(PyObject *self, Py_buffer *view) const {
 #if PY_VERSION_HEX >= 0x02060000
