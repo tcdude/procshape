@@ -19,6 +19,7 @@
 #include "./geomstore.h"
 #include "./triangle.h"
 #include "./vertex.h"
+#include "Python.h"
 #include <assert.h>
 #include "common.h"
 #include "config_module.h"
@@ -385,8 +386,73 @@ static PyMethodDef Dtool_Methods_GeomStore[] = {
   {nullptr, nullptr, 0, nullptr}
 };
 
+//////////////////
+// A wrapper function to satisfy Python's internal calling conventions.
+// GeomStore slot bf_getbuffer -> __getbuffer__
+//////////////////
+static int Dtool_GeomStore_getbuffer_9_bf_getbuffer(PyObject *self, Py_buffer *buffer, int flags) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer(self, Dtool_GeomStore, (void **)&local_this)) {
+    return -1;
+  }
+
+  if (!DtoolInstance_IS_CONST(self)) {
+    return (*local_this).__getbuffer__(self, buffer, flags);
+  } else {
+    Dtool_Raise_TypeError("Cannot call GeomStore.__getbuffer__() on a const object.");
+    return -1;
+  }
+}
+
+//////////////////
+// A wrapper function to satisfy Python's internal calling conventions.
+// GeomStore slot bf_releasebuffer -> __releasebuffer__
+//////////////////
+static void Dtool_GeomStore_releasebuffer_10_bf_releasebuffer(PyObject *self, Py_buffer *buffer) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer(self, Dtool_GeomStore, (void **)&local_this)) {
+    return;
+  }
+
+  (*(const GeomStore *)local_this).__releasebuffer__(self, buffer);
+}
+
+//////////////////
+// A wrapper function to satisfy Python's internal calling conventions.
+// GeomStore slot nb_add -> operator +
+//////////////////
+static PyObject *Dtool_GeomStore_operator_14_nb_add(PyObject *self, PyObject *arg) {
+  GeomStore *local_this = nullptr;
+  DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
+  if (local_this == nullptr) {
+    Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
+  }
+  if (!DtoolInstance_IS_CONST(self)) {
+    // 1-int GeomStore::operator +(float v)
+    if (PyNumber_Check(arg)) {
+      int return_value = (*local_this).operator +((float)PyFloat_AsDouble(arg));
+#ifndef NDEBUG
+      Notify *notify = Notify::ptr();
+      if (UNLIKELY(notify->has_assert_failed())) {
+        return Dtool_Raise_AssertionError();
+      }
+#endif
+      return Dtool_WrapValue(return_value);
+    }
+  } else {
+#ifdef NDEBUG
+    return Dtool_Raise_TypeError("non-const method called on const object");
+#else
+    return Dtool_Raise_TypeError("Cannot call GeomStore.__add__() on a const object.");
+#endif
+  }
+  Py_INCREF(Py_NotImplemented);
+  return Py_NotImplemented;
+}
+
 static PyNumberMethods Dtool_NumberMethods_GeomStore = {
-  nullptr,
+  &Dtool_GeomStore_operator_14_nb_add,
   nullptr,
   nullptr,
 #if PY_MAJOR_VERSION < 3
@@ -441,6 +507,19 @@ static PyNumberMethods Dtool_NumberMethods_GeomStore = {
 #endif
 };
 
+static PyBufferProcs Dtool_BufferProcs_GeomStore = {
+#if PY_MAJOR_VERSION < 3
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+  &Dtool_GeomStore_getbuffer_9_bf_getbuffer,
+  &Dtool_GeomStore_releasebuffer_10_bf_releasebuffer,
+#endif
+};
+
 struct Dtool_PyTypedObject Dtool_GeomStore = {
   {
     PyVarObject_HEAD_INIT(nullptr, 0)
@@ -467,8 +546,12 @@ struct Dtool_PyTypedObject Dtool_GeomStore = {
     nullptr,
     nullptr,
     nullptr,
-    nullptr, // tp_as_buffer
+    &Dtool_BufferProcs_GeomStore,
+#if PY_VERSION_HEX >= 0x02060000 && PY_VERSION_HEX < 0x03000000
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_HAVE_NEWBUFFER,
+#else
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_CHECKTYPES,
+#endif
     nullptr, // tp_doc
     nullptr, // tp_traverse
     nullptr, // tp_clear
@@ -556,7 +639,7 @@ extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports,
 extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports, imports};
 #endif
 static InterrogateModuleDef _in_module_def = {
-  1546559184,  /* file_identifier */
+  1546645676,  /* file_identifier */
   "geomstore",  /* library_name */
   "Kshb",  /* library_hash_name */
   "geomstore",  /* module_name */
@@ -566,7 +649,7 @@ static InterrogateModuleDef _in_module_def = {
   nullptr,  /* fptrs */
   0,  /* num_fptrs */
   1,  /* first_index */
-  26  /* next_index */
+  38  /* next_index */
 };
 
 Configure(_in_configure_geomstore);

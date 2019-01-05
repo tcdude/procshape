@@ -13,12 +13,22 @@
 #ifndef GEOMSTORE_HPP
 #define GEOMSTORE_HPP
 
+#include <vector>
+
 #include "pandabase.h"
 #include "luse.h"
+#include "Python.h"
 
 #include "common.h"
 #include "triangle.h"
 #include "vertex.h"
+
+struct InternalBufferData {
+  std::vector<float> _handle;
+  Py_ssize_t _num_rows;
+  Py_ssize_t _stride;
+  std::string _format;
+};
 
 class GeomStore {
   PUBLISHED:
@@ -29,6 +39,10 @@ class GeomStore {
     void subdivide_triangles(int s);
     void subdivide_triangles_distance(float d);
     void extend(GeomStore *other);
+    int __getbuffer__(PyObject *self, Py_buffer *view, int flags);
+    void __releasebuffer__(PyObject *self, Py_buffer *view) const;
+    std::vector<float> my_vec;
+    int operator+ (float v);
 };
 
 #endif

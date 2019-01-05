@@ -36,7 +36,7 @@ def find_sources(base_dir):
     """ Collects all header files recursively """
     sources = []
     files = listdir(base_dir)
-    p = re.compile('.*\.(h|c)((pp|xx)?)$', flags=re.I)
+    p = re.compile(r'.*\.(h|c)((pp|xx)?)$', flags=re.I)
     for f in files:
         fpath = join(base_dir, f)
         if isfile(fpath) and check_ignore(f) and p.match(f) is not None:
@@ -66,6 +66,8 @@ def interrogate():
     cmd += ["-S" + get_panda_include_path() + "/parser-inc"]
     cmd += ["-S" + get_panda_include_path() + "/"]
     # cmd += ["-I/usr/local/lib/python3.6/dist-packages/numpy/core/include"]
+    # cmd += ["-DPy_USING_UNICODE", "-D__x86_64__", "-D__amd64__", "-D__x86_64"]
+    # cmd += ["-D__LITTLE_ENDIAN=1234", "-D__BIG_ENDIAN=4321", "-D__BYTE_ORDER=1234"]
 
     # Add all subdirectories
     for pth in listdir("."):

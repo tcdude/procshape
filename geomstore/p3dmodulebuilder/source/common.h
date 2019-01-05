@@ -41,7 +41,4 @@ template<class T> void remove(std::vector<T> & c, T t) {
   assert(!contains(c, t)); 
 }
 
-
-
-
 #endif
