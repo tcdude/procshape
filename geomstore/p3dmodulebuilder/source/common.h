@@ -5,11 +5,10 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include <stdlib.h>
-#include <stdio.h> 
+#include <iostream>
 #include <vector>
 
-#include "pandabase.h"
+#include "pnotify.h"
 
 #include "triangle.h"
 #include "vertex.h"
@@ -36,9 +35,10 @@ template<class T> void add_unique(std::vector<T> & c, T t) {
 }
 template<class T> void remove(std::vector<T> & c, T t) {
   auto it = std::find(begin(c), end(c), t); 
-  assert(it != end(c)); 
+  nassertv(contains(c, t)); 
+  nassertv(it != end(c)); 
   c.erase(it); 
-  assert(!contains(c, t)); 
+  nassertv(!contains(c, t)); 
 }
 
 #endif

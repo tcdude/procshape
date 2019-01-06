@@ -1,24 +1,30 @@
 /**
- * Simple representation of a triangle in a mesh with 
- * useful functions for edge collapse based on 
- * 
- * Progressive Mesh type Polygon Reduction Algorithm
- * by Stan Melax (c) 1998
+ * @file triangle.h
+ * @author Tiziano Bettio
+ * @date 2018-12-29
  */
 
 #ifndef TRIANGLE_HPP
 #define TRIANGLE_HPP
 
 
+#include <iostream>
 #include <vector>
 
-#include "pandabase.h"
+#include "pnotify.h"
 #include "luse.h"
 
 #include "common.h"
 #include "vertex.h"
 class Vertex;
 
+/**
+ * Simple representation of a triangle in a mesh with 
+ * useful functions for edge collapse based on 
+ * 
+ * Progressive Mesh type Polygon Reduction Algorithm
+ * by Stan Melax (c) 1998
+ */
 class Triangle {
   public:
     Triangle(Vertex *v0, Vertex *v1, Vertex *v2);

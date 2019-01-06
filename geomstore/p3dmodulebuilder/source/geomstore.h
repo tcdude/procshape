@@ -8,15 +8,21 @@
  * -> triangle subdivision
  * -> etc.
  * 
+ * @file geomstore.h
+ * @author Tiziano Bettio
+ * @date 2018-12-29
  */
 
 #ifndef GEOMSTORE_HPP
 #define GEOMSTORE_HPP
 
+#include <iostream>
 #include <vector>
 
 #include "pandabase.h"
 #include "luse.h"
+#include "pta_LVecBase3.h"
+#include "pta_LVecBase4.h"
 #include "Python.h"
 
 #include "common.h"
@@ -33,24 +39,30 @@ struct InternalBufferData {
 class GeomStore {
   PUBLISHED:
     GeomStore();
-    virtual ~GeomStore();
+    ~GeomStore();
+    void print_vertices();
+    void print_colors();
+    void print_triangles();
     int add_vertex(LVecBase3f v, LVecBase4f c);
     int add_triangle(int v0, int v1, int v2);
     void subdivide_triangles(int s);
     void subdivide_triangles_distance(float d);
     void extend(GeomStore *other);
-    int __getbuffer__(PyObject *self, Py_buffer *view, int flags);
-    void __releasebuffer__(PyObject *self, Py_buffer *view) const;
-    std::vector<float> my_vec;
     int operator + (float v);
     int operator + (LVecBase3f v);
     int operator - (float v);
     int operator - (LVecBase3f v);
     int operator * (float v);
     int operator / (float v);
+    PTA_LVecBase3f _vertex_positions;
+    PTA_LVecBase4f _colors;
+    PTA_LVecBase3i _triangle_indices;
   private:
     std::vector<Vertex *> _vertices;
     std::vector<Triangle *> _triangles;
+    void print_pta(PTA_LVecBase3f _pta);
+    void print_pta(PTA_LVecBase3i _pta);
+    void print_pta(PTA_LVecBase4f _pta);
 };
 
 #endif

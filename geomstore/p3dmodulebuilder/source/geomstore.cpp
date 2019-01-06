@@ -1,40 +1,113 @@
-#include <iostream>
-#include <vector>
-#include <assert.h>
+/**
+ * @file geomstore.cpp
+ * @author Tiziano Bettio
+ * @date 2018-12-29
+ */
 
 #include "geomstore.h"
 
 
+using namespace std;
 
 GeomStore::
 GeomStore() {
-  my_vec.push_back(1.0f);
-  my_vec.push_back(2.0f);
-  my_vec.push_back(3.0f);
+  /*_vertex_positions.push_back(LVecBase3f(1.0f, 0.0f, 0.0f));
+  _vertex_positions.push_back(LVecBase3f(0.0f, 1.0f, 0.0f));
+  _vertex_positions.push_back(LVecBase3f(0.0f, 0.0f, 1.0f));
+  _triangle_indices.push_back(LVecBase3i(0, 1, 2));
+  _colors.push_back(LVecBase4f(1.0f, 0.0f, 0.0f, 1.0f));
+  _colors.push_back(LVecBase4f(0.0f, 1.0f, 0.0f, 1.0f));
+  _colors.push_back(LVecBase4f(0.0f, 0.0f, 1.0f, 1.0f));*/
 }
 
 GeomStore::
 ~GeomStore() {
 }
 
+void GeomStore::
+print_vertices() {
+  print_pta(_vertex_positions);
+}
+
+void GeomStore::
+print_triangles() {
+  print_pta(_triangle_indices);
+}
+
+void GeomStore::
+print_colors() {
+  print_pta(_colors);
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase3f _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase3i _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase4f _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    LVecBase4f v = (LVecBase4f) _pta[i];
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+
 int GeomStore::
 add_vertex(LVecBase3f v, LVecBase4f c) {
-  int id = this->_vertices.size();
-  Vertex *vert = &Vertex(v, c, id);
-  this->_vertices.push_back(vert);
-  // std::cout << my_vec[1] << std::endl;
+  int id = _vertices.size();
+  _vertex_positions.push_back(v);
+  _colors.push_back(c);
+  Vertex vert = Vertex(
+    &_vertex_positions.back(), 
+    &_colors.back(), 
+    id
+    );
+  _vertices.push_back(&vert);
   return id;
 }
 
 int GeomStore:: 
 add_triangle(int v0, int v1, int v2) {
-  int id = this->_triangles.size();
-  Triangle *tri = &Triangle(
-    this->_vertices[v0],
-    this->_vertices[v1],
-    this->_vertices[v2]
+  int id = _triangles.size();
+  Triangle tri = Triangle(
+    _vertices[v0],
+    _vertices[v1],
+    _vertices[v2]
   );
-  this->_triangles.push_back(tri);
+  _triangles.push_back(&tri);
   return id;
 }
 
@@ -50,21 +123,23 @@ subdivide_triangles_distance(float d) {
 
 /**
  * Extend this GeomStore with all Vertices and Triangles from other while
- * leaving other intact
+ * leaving other intact (New objects are being generated!)
  */
 void GeomStore::
 extend(GeomStore *other) {
   int start_vertex_index = _vertices.size();
 
   for (uint i = 0; i < other->_vertices.size(); i++) {
-    this->add_vertex(other->_vertices[i]->position, other->_vertices[i]->color);
+    LVecBase3f _pos = *other->_vertices[i]->position;
+    UnalignedLVecBase4f _col = *other->_vertices[i]->color;
+    add_vertex(_pos, _col);
   }
   
   for (uint i = 0; i < other->_triangles.size(); i++) {
     int v0 = other->_triangles[i]->vertex[0]->id + start_vertex_index;
     int v1 = other->_triangles[i]->vertex[1]->id + start_vertex_index;
     int v2 = other->_triangles[i]->vertex[2]->id + start_vertex_index;
-    this->add_triangle(v0, v1, v2);
+    add_triangle(v0, v1, v2);
   }
 }
 
@@ -78,8 +153,8 @@ operator + (float v) {
   if (v == 0) {
     return 0;
   }
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position += v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] += v;
   }
   return 0;
 }
@@ -89,8 +164,8 @@ operator + (LVecBase3f v) {
   if (v == LVecBase3f(0.0f)) {
     return 0;
   }
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position += v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] += v;
   }
   return 0;
 }
@@ -100,8 +175,8 @@ operator - (float v) {
   if (v == 0) {
     return 0;
   }
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position -= v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] -= v;
   }
   return 0;
 }
@@ -111,16 +186,16 @@ operator - (LVecBase3f v) {
   if (v == LVecBase3f(0.0f)) {
     return 0;
   }
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position -= v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] -= v;
   }
   return 0;
 }
 
 int GeomStore::
 operator * (float v) {
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position *= v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] *= v;
   }
   return 0;
 }
@@ -128,84 +203,8 @@ operator * (float v) {
 int GeomStore::
 operator / (float v) {
   assert(v != 0);
-  for (uint i = 0; i < _vertices.size(); i++) {
-    _vertices[i]->position /= v;
+  for (int i = 0; i < _vertex_positions.size(); i++) {
+    _vertex_positions[i] /= v;
   }
   return 0;
 }
-
-/**
- * This is used to implement the buffer protocol, in order to allow efficient
- * access to vertex data through a Python multiview object.
- */
-int GeomStore::
-__getbuffer__(PyObject *self, Py_buffer *view, int flags) {
-#if PY_VERSION_HEX >= 0x02060000
-  int row_size;
-  bool pad_fmt;
-
-  if ((flags & PyBUF_STRIDES) == PyBUF_STRIDES) {
-    // The consumer is fine with having a stride value.
-    row_size = my_vec.size() * sizeof(float);
-    pad_fmt = false;
-  } else {
-    // The consumer expects a contiguous buffer.  Give the stride as row size,
-    // and pad the format with extra bytes.
-    row_size = sizeof(float);
-    pad_fmt = true;
-  }
-
-  InternalBufferData *data = new InternalBufferData;
-  data->_handle = my_vec;
-  data->_num_rows = my_vec.size();
-  data->_stride = sizeof(float);
-  data->_format = "f";
-
-  view->internal = (void*) data;
-
-  if (self != nullptr) {
-    Py_INCREF(self);
-  }
-  view->obj = self;
-  view->buf = (void*) &my_vec[0];
-  view->len = row_size * my_vec.size();
-  view->readonly = 0;
-  view->itemsize = row_size;
-  view->format = nullptr;
-  if ((flags & PyBUF_FORMAT) == PyBUF_FORMAT) {
-    view->format = (char*) data->_format.c_str();
-  }
-  view->ndim = 1;
-  view->shape = nullptr;
-  if ((flags & PyBUF_ND) == PyBUF_ND) {
-    view->shape = &data->_num_rows;
-  }
-  view->strides = nullptr;
-  if ((flags & PyBUF_STRIDES) == PyBUF_STRIDES) {
-    view->strides = &data->_stride;
-  }
-  view->suboffsets = nullptr;
-
-  return 0;
-#else
-  return -1;
-#endif
-}
-
-/**
- * Releases the buffer allocated by __getbuffer__.
- */
-void GeomStore::
-__releasebuffer__(PyObject *self, Py_buffer *view) const {
-#if PY_VERSION_HEX >= 0x02060000
-  // Note: PyBuffer_Release automatically decrements view->obj.
-  InternalBufferData *data;
-  data = (InternalBufferData *) view->internal;
-  if (data == nullptr) {
-    return;
-  }
-  delete data;
-  view->internal = nullptr;
-#endif
-}
-
