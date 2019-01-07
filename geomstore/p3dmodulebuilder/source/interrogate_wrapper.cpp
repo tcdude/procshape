@@ -333,7 +333,8 @@ static const char *Dtool_GeomStore_subdivide_triangles_9_comment =
   "subdivide_triangles(const GeomStore self, int s)\n"
   "\n"
   "/**\n"
-  " * Subdivide triangles s times\n"
+  " * Subdivide triangles s times. This is useful when the triangles already are\n"
+  " * approximately the same size over the entire GeomStore.\n"
   " */";
 #else
 static const char *Dtool_GeomStore_subdivide_triangles_9_comment = nullptr;
@@ -363,7 +364,13 @@ static PyObject *Dtool_GeomStore_subdivide_triangles_distance_10(PyObject *self,
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_subdivide_triangles_distance_10_comment =
   "C++ Interface:\n"
-  "subdivide_triangles_distance(const GeomStore self, float d)\n";
+  "subdivide_triangles_distance(const GeomStore self, float d)\n"
+  "\n"
+  "/**\n"
+  " * Subdivides triangles until every hypothenuse is <= d (length in model view).\n"
+  " * Use this when the triangles in GeomStore are of mixed size. Less efficient \n"
+  " * than subdivide_triangles(int s).\n"
+  " */";
 #else
 static const char *Dtool_GeomStore_subdivide_triangles_distance_10_comment = nullptr;
 #endif
@@ -397,7 +404,7 @@ static const char *Dtool_GeomStore_extend_11_comment =
   "\n"
   "/**\n"
   " * Extend this GeomStore with all Vertices and Triangles from other while\n"
-  " * leaving other intact (New objects are being generated!)\n"
+  " * leaving other intact (New objects are being generated!).\n"
   " */";
 #else
 static const char *Dtool_GeomStore_extend_11_comment = nullptr;
@@ -979,7 +986,7 @@ extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports,
 extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports, imports};
 #endif
 static InterrogateModuleDef _in_module_def = {
-  1546823405,  /* file_identifier */
+  1546885810,  /* file_identifier */
   "geomstore",  /* library_name */
   "Kshb",  /* library_hash_name */
   "geomstore",  /* module_name */

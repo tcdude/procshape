@@ -1,4 +1,4 @@
-1546823405
+1546885810
 3 3
 9 geomstore 4 Kshb 9 geomstore 
 17
@@ -34,21 +34,27 @@ int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c);
 52
 int GeomStore::add_triangle(int v0, int v1, int v2);
 
-24 19 subdivide_triangles 0 4 34 30 GeomStore::subdivide_triangles 0 1 8 38
+24 19 subdivide_triangles 0 4 34 30 GeomStore::subdivide_triangles 0 1 8 143
 /**
- * Subdivide triangles s times
+ * Subdivide triangles s times. This is useful when the triangles already are
+ * approximately the same size over the entire GeomStore.
  */
 43
 void GeomStore::subdivide_triangles(int s);
 
-25 28 subdivide_triangles_distance 0 4 34 39 GeomStore::subdivide_triangles_distance 0 1 9 0
+25 28 subdivide_triangles_distance 0 4 34 39 GeomStore::subdivide_triangles_distance 0 1 9 202
+/**
+ * Subdivides triangles until every hypothenuse is <= d (length in model view).
+ * Use this when the triangles in GeomStore are of mixed size. Less efficient 
+ * than subdivide_triangles(int s).
+ */
 54
 void GeomStore::subdivide_triangles_distance(float d);
 
-26 6 extend 0 4 34 17 GeomStore::extend 0 1 10 140
+26 6 extend 0 4 34 17 GeomStore::extend 0 1 10 141
 /**
  * Extend this GeomStore with all Vertices and Triangles from other while
- * leaving other intact (New objects are being generated!)
+ * leaving other intact (New objects are being generated!).
  */
 41
 void GeomStore::extend(GeomStore *other);
@@ -96,13 +102,18 @@ PTA_LVecBase3i GeomStore::get_triangle_indices(void) const;
 5 0 0 4 6 44 0 0 0 1 4 this 3 41  
 6 0 0 6 7 49 0 0 0 3 4 this 3 41  1 v 1 45  1 c 1 47  
 7 0 0 6 8 49 0 0 0 4 4 this 3 41  2 v0 1 49  2 v1 1 49  2 v2 1 49  
-8 0 0 4 9 44 0 0 38 /**
- * Subdivide triangles s times
+8 0 0 4 9 44 0 0 143 /**
+ * Subdivide triangles s times. This is useful when the triangles already are
+ * approximately the same size over the entire GeomStore.
  */ 2 4 this 3 41  1 s 1 49  
-9 0 0 4 10 44 0 0 0 2 4 this 3 41  1 d 1 50  
-10 0 0 4 11 44 0 0 140 /**
+9 0 0 4 10 44 0 0 202 /**
+ * Subdivides triangles until every hypothenuse is <= d (length in model view).
+ * Use this when the triangles in GeomStore are of mixed size. Less efficient 
+ * than subdivide_triangles(int s).
+ */ 2 4 this 3 41  1 d 1 50  
+10 0 0 4 11 44 0 0 141 /**
  * Extend this GeomStore with all Vertices and Triangles from other while
- * leaving other intact (New objects are being generated!)
+ * leaving other intact (New objects are being generated!).
  */ 2 4 this 3 41  5 other 1 41  
 11 0 0 6 12 49 0 0 0 2 4 this 3 41  1 v 1 45  
 12 0 0 6 12 49 0 0 0 2 4 this 3 41  1 v 1 50  

@@ -32,6 +32,7 @@ class Triangle {
     Vertex *vertex[3];  // the 3 points that make this tri
     LVecBase3f normal;  // unit vector orthogonal to this face
     int _longest_edge_index; // the start index of the longest edge
+    float _longest_edge_length; // the length of the longest edge
     void compute_normal();
     void compute_longest_edge();
     void replace_vertex(Vertex *v_old, Vertex *v_new);

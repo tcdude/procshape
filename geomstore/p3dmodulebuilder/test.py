@@ -20,6 +20,7 @@ print('triangles:')
 g.print_triangles()
 
 g.subdivide_triangles(1)
+g.subdivide_triangles_distance(0.2)
 
 print('after subdivide')
 print('vertices:')

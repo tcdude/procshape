@@ -72,6 +72,7 @@ compute_longest_edge()
 			_longest_edge_index = i;
 		}
 	}
+	_longest_edge_length = max_dist;
 	nassertv(_longest_edge_index > -1 && _longest_edge_index < 3);
 }
 

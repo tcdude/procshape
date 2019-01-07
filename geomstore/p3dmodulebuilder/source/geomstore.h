@@ -59,6 +59,7 @@ class GeomStore {
     PTA_LVecBase3i _triangle_indices;
   private:
     Vertex* get_vertex(int id);
+    int subdivide(float d=0.0f);
     std::vector<Vertex *> _vertices;
     std::vector<Triangle *> _triangles;
     void print_pta(PTA_LVecBase3f _pta);

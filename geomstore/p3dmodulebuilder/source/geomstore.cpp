@@ -11,18 +11,11 @@ using namespace std;
 
 GeomStore::
 GeomStore() {
-  _vertices.reserve((int)1e6);
-  _triangles.reserve((int)1e6);
+  //_vertices.reserve((int)1e6);
+  //_triangles.reserve((int)1e6);
   _vertex_positions.reserve((int)1e6);
   _colors.reserve((int)1e6);
   _triangle_indices.reserve((int)1e6);
-  /*_vertex_positions.push_back(LVecBase3f(1.0f, 0.0f, 0.0f));
-  _vertex_positions.push_back(LVecBase3f(0.0f, 1.0f, 0.0f));
-  _vertex_positions.push_back(LVecBase3f(0.0f, 0.0f, 1.0f));
-  _triangle_indices.push_back(LVecBase3i(0, 1, 2));
-  _colors.push_back(LVecBase4f(1.0f, 0.0f, 0.0f, 1.0f));
-  _colors.push_back(LVecBase4f(0.0f, 1.0f, 0.0f, 1.0f));
-  _colors.push_back(LVecBase4f(0.0f, 0.0f, 1.0f, 1.0f));*/
 }
 
 GeomStore::
@@ -61,13 +54,35 @@ add_triangle(int v0, int v1, int v2) {
 }
 
 /**
- * Subdivide triangles s times
+ * Subdivide triangles s times. This is useful when the triangles already are
+ * approximately the same size over the entire GeomStore.
  */
 void GeomStore::
 subdivide_triangles(int s) {
   for (int j = 0; j < s; j++) {
-    int current_size = _triangles.size();
-    for (int i = 0; i < current_size; i++) {
+    subdivide();
+  }
+}
+
+/**
+ * Subdivides triangles until every hypothenuse is <= d (length in model view).
+ * Use this when the triangles in GeomStore are of mixed size. Less efficient 
+ * than subdivide_triangles(int s).
+ */
+void GeomStore::
+subdivide_triangles_distance(float d) {
+  while (subdivide(d));
+}
+
+/**
+ * Does the actual subdivision of the triangles.
+ */
+int GeomStore::
+subdivide(float d) {
+  int current_size = _triangles.size();
+  int subdivisions = 0;
+  for (int i = 0; i < current_size; i++) {
+    if (d == 0.0f || (d > 0.0f && _triangles[i]->_longest_edge_length > d)) {
       int start_id = _triangles[i]->_longest_edge_index;
       int end_id = (start_id + 1) % 3;
       int last_id = (start_id + 2) % 3;
@@ -75,29 +90,24 @@ subdivide_triangles(int s) {
         *_triangles[i]->vertex[start_id]->position;
       LVecBase3f s_pos = *_triangles[i]->vertex[start_id]->position;
       v_new = s_pos + v_new * 0.5f;
-      UnalignedLVecBase4f c_new = UnalignedLVecBase4f(0.0f, 0.0f, 0.0f, 0.0f);
-      for (int k = 0; k < 4; k++) {
-        c_new[k] = (_colors[_triangles[i]->vertex[end_id]->id][k] +  
-          _colors[_triangles[i]->vertex[start_id]->id][k]) * 0.5f;
-      }
-      int vert_id = add_vertex(v_new, c_new);
+      LVecBase4f c_new = (LVecBase4f) _colors[_triangles[i]->vertex[end_id]->id]
+        + (LVecBase4f) _colors[_triangles[i]->vertex[start_id]->id];
+      c_new *= 0.5;
+      int vert_id = add_vertex(v_new, (UnalignedLVecBase4f) c_new);
       add_triangle(vert_id, _triangles[i]->vertex[end_id]->id, 
         _triangles[i]->vertex[last_id]->id);
       _triangles[i]->replace_vertex(_triangles[i]->vertex[end_id], 
         _vertices[vert_id]);
       _triangle_indices[i][end_id] = vert_id;
+      subdivisions++;
     }
   }
-}
-
-void GeomStore::
-subdivide_triangles_distance(float d) {
-
+  return subdivisions;
 }
 
 /**
  * Extend this GeomStore with all Vertices and Triangles from other while
- * leaving other intact (New objects are being generated!)
+ * leaving other intact (New objects are being generated!).
  */
 void GeomStore::
 extend(GeomStore *other) {
