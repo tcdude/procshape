@@ -23,6 +23,11 @@
 #include "common.h"
 #include "config_module.h"
 #include "dconfig.h"
+#include "geom.h"
+#include "geomNode.h"
+#include "geomTriangles.h"
+#include "geomVertexData.h"
+#include "geomVertexWriter.h"
 #include "geomstore.h"
 #include <iostream>
 #include "luse.h"
@@ -31,6 +36,7 @@
 #include "pnotify.h"
 #include "pta_LVecBase3.h"
 #include "pta_LVecBase4.h"
+#include "pta_int.h"
 #include "triangle.h"
 #include <vector>
 #include "vertex.h"
@@ -76,6 +82,10 @@ static Dtool_TypeDef imports[] = {
 #define Dtool_Ptr_PointerToArray_LVecBase3i (imports[3].type)
   {"PointerToArray< UnalignedLVecBase4f >", nullptr},
 #define Dtool_Ptr_PointerToArray_UnalignedLVecBase4f (imports[4].type)
+  {"PointerToArray< int >", nullptr},
+#define Dtool_Ptr_PointerToArray_int (imports[5].type)
+  {"GeomNode", nullptr},
+#define Dtool_Ptr_GeomNode (imports[6].type)
   {nullptr, nullptr},
 };
 #endif
@@ -140,6 +150,24 @@ extern struct Dtool_PyTypedObject Dtool_PointerToArray_UnalignedLVecBase4f;
 static struct Dtool_PyTypedObject *const Dtool_Ptr_PointerToArray_UnalignedLVecBase4f = &Dtool_PointerToArray_UnalignedLVecBase4f;
 extern PointerToArray< UnalignedLVecBase4f > *Dtool_Coerce_PointerToArray_UnalignedLVecBase4f(PyObject *args, PointerToArray< UnalignedLVecBase4f > &coerced);
 #endif
+// PointerToArray< int >
+#ifndef LINK_ALL_STATIC
+inline static PointerToArray< int > *Dtool_Coerce_PointerToArray_int(PyObject *args, PointerToArray< int > &coerced) {
+  nassertr(Dtool_Ptr_PointerToArray_int != nullptr, nullptr);
+  nassertr(Dtool_Ptr_PointerToArray_int->_Dtool_Coerce != nullptr, nullptr);
+  return ((PointerToArray< int > *(*)(PyObject *, PointerToArray< int > &))Dtool_Ptr_PointerToArray_int->_Dtool_Coerce)(args, coerced);
+}
+#else
+extern struct Dtool_PyTypedObject Dtool_PointerToArray_int;
+static struct Dtool_PyTypedObject *const Dtool_Ptr_PointerToArray_int = &Dtool_PointerToArray_int;
+extern PointerToArray< int > *Dtool_Coerce_PointerToArray_int(PyObject *args, PointerToArray< int > &coerced);
+#endif
+// GeomNode
+#ifndef LINK_ALL_STATIC
+#else
+extern struct Dtool_PyTypedObject Dtool_GeomNode;
+static struct Dtool_PyTypedObject *const Dtool_Ptr_GeomNode = &Dtool_GeomNode;
+#endif
 
 /**
  * Python wrappers for global functions
@@ -164,11 +192,7 @@ static PyObject *Dtool_GeomStore_print_vertices_4(PyObject *self, PyObject *) {
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_print_vertices_4_comment =
   "C++ Interface:\n"
-  "print_vertices(const GeomStore self)\n"
-  "\n"
-  "/**\n"
-  " * Debugging methods to test the content of the various PTAs\n"
-  " */";
+  "print_vertices(const GeomStore self)\n";
 #else
 static const char *Dtool_GeomStore_print_vertices_4_comment = nullptr;
 #endif
@@ -219,6 +243,7 @@ static const char *Dtool_GeomStore_print_triangles_6_comment = nullptr;
 
 /**
  * Python function wrapper for:
+ * int GeomStore::add_vertex(LVecBase3f v)
  * int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c)
  */
 static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, PyObject *kwds) {
@@ -226,29 +251,64 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
   if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.add_vertex")) {
     return nullptr;
   }
-  // 1-int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c)
-  PyObject *param1;
-  PyObject *param2;
-  static const char *keyword_list[] = {"v", "c", nullptr};
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "OO:add_vertex", (char **)keyword_list, &param1, &param2)) {
-    LVecBase3f param1_local;
-    LVecBase3f *param1_this = Dtool_Coerce_LVecBase3f(param1, param1_local);
-    if (!(param1_this != nullptr)) {
-      return Dtool_Raise_ArgTypeError(param1, 1, "GeomStore.add_vertex", "LVecBase3f");
+  int parameter_count = (int)PyTuple_Size(args);
+  if (kwds != nullptr) {
+    parameter_count += (int)PyDict_Size(kwds);
+  }
+  switch (parameter_count) {
+  case 1:
+    {
+      PyObject *arg;
+      if (Dtool_ExtractArg(&arg, args, kwds, "v")) {
+        // 1-int GeomStore::add_vertex(LVecBase3f v)
+        LVecBase3f arg_local;
+        LVecBase3f *arg_this = Dtool_Coerce_LVecBase3f(arg, arg_local);
+        if (!(arg_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(arg, 1, "GeomStore.add_vertex", "LVecBase3f");
+        }
+        int return_value = (*local_this).add_vertex(*arg_this);
+        if (Dtool_CheckErrorOccurred()) {
+          return nullptr;
+        }
+        return Dtool_WrapValue(return_value);
+      }
     }
-    LVecBase4f param2_local;
-    LVecBase4f *param2_this = Dtool_Coerce_LVecBase4f(param2, param2_local);
-    if (!(param2_this != nullptr)) {
-      return Dtool_Raise_ArgTypeError(param2, 2, "GeomStore.add_vertex", "LVecBase4f");
+    break;
+  case 2:
+    {
+      // 1-int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c)
+      PyObject *param1;
+      PyObject *param2;
+      static const char *keyword_list[] = {"v", "c", nullptr};
+      if (PyArg_ParseTupleAndKeywords(args, kwds, "OO:add_vertex", (char **)keyword_list, &param1, &param2)) {
+        LVecBase3f param1_local;
+        LVecBase3f *param1_this = Dtool_Coerce_LVecBase3f(param1, param1_local);
+        if (!(param1_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(param1, 1, "GeomStore.add_vertex", "LVecBase3f");
+        }
+        LVecBase4f param2_local;
+        LVecBase4f *param2_this = Dtool_Coerce_LVecBase4f(param2, param2_local);
+        if (!(param2_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(param2, 2, "GeomStore.add_vertex", "LVecBase4f");
+        }
+        int return_value = (*local_this).add_vertex(*param1_this, *param2_this);
+        if (Dtool_CheckErrorOccurred()) {
+          return nullptr;
+        }
+        return Dtool_WrapValue(return_value);
+      }
     }
-    int return_value = (*local_this).add_vertex(*param1_this, *param2_this);
-    if (Dtool_CheckErrorOccurred()) {
-      return nullptr;
-    }
-    return Dtool_WrapValue(return_value);
+    break;
+#ifndef NDEBUG
+  default:
+    return PyErr_Format(PyExc_TypeError,
+                        "add_vertex() takes 2 or 3 arguments (%d given)",
+                        parameter_count + 1);
+#endif
   }
   if (!_PyErr_OCCURRED()) {
     return Dtool_Raise_BadArgumentsError(
+      "add_vertex(const GeomStore self, LVecBase3f v)\n"
       "add_vertex(const GeomStore self, LVecBase3f v, LVecBase4f c)\n");
   }
   return nullptr;
@@ -257,7 +317,16 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_add_vertex_7_comment =
   "C++ Interface:\n"
-  "add_vertex(const GeomStore self, LVecBase3f v, LVecBase4f c)\n";
+  "add_vertex(const GeomStore self, LVecBase3f v)\n"
+  "add_vertex(const GeomStore self, LVecBase3f v, LVecBase4f c)\n"
+  "\n"
+  "/**\n"
+  " * Add vertex with position v and color (1.0, 1.0, 1.0, 1.0) to the GeomStore.\n"
+  " */\n"
+  "\n"
+  "/**\n"
+  " * Add vertex with position v and color c to the GeomStore.\n"
+  " */";
 #else
 static const char *Dtool_GeomStore_add_vertex_7_comment = nullptr;
 #endif
@@ -293,7 +362,11 @@ static PyObject *Dtool_GeomStore_add_triangle_8(PyObject *self, PyObject *args, 
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_add_triangle_8_comment =
   "C++ Interface:\n"
-  "add_triangle(const GeomStore self, int v0, int v1, int v2)\n";
+  "add_triangle(const GeomStore self, int v0, int v1, int v2)\n"
+  "\n"
+  "/**\n"
+  " * Add a triangle to the GeomStore.\n"
+  " */";
 #else
 static const char *Dtool_GeomStore_add_triangle_8_comment = nullptr;
 #endif
@@ -408,6 +481,190 @@ static const char *Dtool_GeomStore_extend_11_comment =
   " */";
 #else
 static const char *Dtool_GeomStore_extend_11_comment = nullptr;
+#endif
+
+/**
+ * Python function wrapper for:
+ * void GeomStore::set_color(LVecBase4f c)
+ * void GeomStore::set_color(LVecBase4f c, PointerToArray< int > filter)
+ */
+static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, PyObject *kwds) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.set_color")) {
+    return nullptr;
+  }
+  int parameter_count = (int)PyTuple_Size(args);
+  if (kwds != nullptr) {
+    parameter_count += (int)PyDict_Size(kwds);
+  }
+  switch (parameter_count) {
+  case 1:
+    {
+      PyObject *arg;
+      if (Dtool_ExtractArg(&arg, args, kwds, "c")) {
+        // 1-void GeomStore::set_color(LVecBase4f c)
+        LVecBase4f arg_local;
+        LVecBase4f *arg_this = Dtool_Coerce_LVecBase4f(arg, arg_local);
+        if (!(arg_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(arg, 1, "GeomStore.set_color", "LVecBase4f");
+        }
+        (*local_this).set_color(*arg_this);
+        return Dtool_Return_None();
+      }
+    }
+    break;
+  case 2:
+    {
+      // 1-void GeomStore::set_color(LVecBase4f c, PointerToArray< int > filter)
+      PyObject *param1;
+      PyObject *param2;
+      static const char *keyword_list[] = {"c", "filter", nullptr};
+      if (PyArg_ParseTupleAndKeywords(args, kwds, "OO:set_color", (char **)keyword_list, &param1, &param2)) {
+        LVecBase4f param1_local;
+        LVecBase4f *param1_this = Dtool_Coerce_LVecBase4f(param1, param1_local);
+        if (!(param1_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(param1, 1, "GeomStore.set_color", "LVecBase4f");
+        }
+        PointerToArray< int > param2_local;
+        PointerToArray< int > *param2_this = Dtool_Coerce_PointerToArray_int(param2, param2_local);
+        if (!(param2_this != nullptr)) {
+          return Dtool_Raise_ArgTypeError(param2, 2, "GeomStore.set_color", "PointerToArray");
+        }
+        (*local_this).set_color(*param1_this, *param2_this);
+        return Dtool_Return_None();
+      }
+    }
+    break;
+#ifndef NDEBUG
+  default:
+    return PyErr_Format(PyExc_TypeError,
+                        "set_color() takes 2 or 3 arguments (%d given)",
+                        parameter_count + 1);
+#endif
+  }
+  if (!_PyErr_OCCURRED()) {
+    return Dtool_Raise_BadArgumentsError(
+      "set_color(const GeomStore self, LVecBase4f c)\n"
+      "set_color(const GeomStore self, LVecBase4f c, PointerToArray filter)\n");
+  }
+  return nullptr;
+}
+
+#ifndef NDEBUG
+static const char *Dtool_GeomStore_set_color_12_comment =
+  "C++ Interface:\n"
+  "set_color(const GeomStore self, LVecBase4f c)\n"
+  "set_color(const GeomStore self, LVecBase4f c, PointerToArray filter)\n"
+  "\n"
+  "/**\n"
+  " * Sets the color of all vertices to c\n"
+  " */\n"
+  "\n"
+  "/**\n"
+  " * Sets the color of all vertices in filter to c\n"
+  " */";
+#else
+static const char *Dtool_GeomStore_set_color_12_comment = nullptr;
+#endif
+
+/**
+ * Python function wrapper for:
+ * void GeomStore::normals_as_color(void)
+ */
+static PyObject *Dtool_GeomStore_normals_as_color_13(PyObject *self, PyObject *) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.normals_as_color")) {
+    return nullptr;
+  }
+  // 1-void GeomStore::normals_as_color(void)
+  (*local_this).normals_as_color();
+  return Dtool_Return_None();
+}
+
+#ifndef NDEBUG
+static const char *Dtool_GeomStore_normals_as_color_13_comment =
+  "C++ Interface:\n"
+  "normals_as_color(const GeomStore self)\n"
+  "\n"
+  "/**\n"
+  " * Sets the vertex color to the corresponding unit length vector\n"
+  " */";
+#else
+static const char *Dtool_GeomStore_normals_as_color_13_comment = nullptr;
+#endif
+
+/**
+ * Python function wrapper for:
+ * void GeomStore::to_unit_sphere(void)
+ */
+static PyObject *Dtool_GeomStore_to_unit_sphere_14(PyObject *self, PyObject *) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.to_unit_sphere")) {
+    return nullptr;
+  }
+  // 1-void GeomStore::to_unit_sphere(void)
+  (*local_this).to_unit_sphere();
+  return Dtool_Return_None();
+}
+
+#ifndef NDEBUG
+static const char *Dtool_GeomStore_to_unit_sphere_14_comment =
+  "C++ Interface:\n"
+  "to_unit_sphere(const GeomStore self)\n"
+  "\n"
+  "/**\n"
+  " * Sets all vertex positions to unit length\n"
+  " */";
+#else
+static const char *Dtool_GeomStore_to_unit_sphere_14_comment = nullptr;
+#endif
+
+/**
+ * Python function wrapper for:
+ * PointerTo< GeomNode > GeomStore::get_p3d_geom_node(std::string name = "UnnamedGeom")
+ */
+static PyObject *Dtool_GeomStore_get_p3d_geom_node_15(PyObject *self, PyObject *args, PyObject *kwds) {
+  GeomStore *local_this = nullptr;
+  if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.get_p3d_geom_node")) {
+    return nullptr;
+  }
+  // 1-PointerTo< GeomNode > GeomStore::get_p3d_geom_node(std::string name = "UnnamedGeom")
+  const char *param1_str = "UnnamedGeom";
+  Py_ssize_t param1_len = 11;
+  static const char *keyword_list[] = {"name", nullptr};
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "|s#:get_p3d_geom_node", (char **)keyword_list, &param1_str, &param1_len)) {
+    PointerTo< GeomNode > return_value = (*local_this).get_p3d_geom_node(std::string(param1_str, param1_len));
+    if (Dtool_CheckErrorOccurred()) {
+      return nullptr;
+    }
+    // Transfer ownership of return_value.
+    GeomNode *return_ptr = return_value.p();
+    return_value.cheat() = nullptr;
+    if (return_ptr == nullptr) {
+      Py_INCREF(Py_None);
+      return Py_None;
+    } else {
+      return DTool_CreatePyInstanceTyped((void *)return_ptr, *Dtool_Ptr_GeomNode, true, false, return_ptr->as_typed_object()->get_type_index());
+    }
+  }
+  if (!_PyErr_OCCURRED()) {
+    return Dtool_Raise_BadArgumentsError(
+      "get_p3d_geom_node(const GeomStore self, str name)\n");
+  }
+  return nullptr;
+}
+
+#ifndef NDEBUG
+static const char *Dtool_GeomStore_get_p3d_geom_node_15_comment =
+  "C++ Interface:\n"
+  "get_p3d_geom_node(const GeomStore self, str name)\n"
+  "\n"
+  "/**\n"
+  " * Returns a Panda3D GeomNode object from the current GeomStore w/o\n"
+  " * individual vertex normal (flat shading).\n"
+  " */";
+#else
+static const char *Dtool_GeomStore_get_p3d_geom_node_15_comment = nullptr;
 #endif
 
 static PyObject *Dtool_GeomStore__vertex_positions_Getter(PyObject *self, void *) {
@@ -555,6 +812,10 @@ static PyMethodDef Dtool_Methods_GeomStore[] = {
   {"subdivide_triangles", &Dtool_GeomStore_subdivide_triangles_9, METH_O, (const char *)Dtool_GeomStore_subdivide_triangles_9_comment},
   {"subdivide_triangles_distance", &Dtool_GeomStore_subdivide_triangles_distance_10, METH_O, (const char *)Dtool_GeomStore_subdivide_triangles_distance_10_comment},
   {"extend", &Dtool_GeomStore_extend_11, METH_O, (const char *)Dtool_GeomStore_extend_11_comment},
+  {"set_color", (PyCFunction) &Dtool_GeomStore_set_color_12, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_set_color_12_comment},
+  {"normals_as_color", &Dtool_GeomStore_normals_as_color_13, METH_NOARGS, (const char *)Dtool_GeomStore_normals_as_color_13_comment},
+  {"to_unit_sphere", &Dtool_GeomStore_to_unit_sphere_14, METH_NOARGS, (const char *)Dtool_GeomStore_to_unit_sphere_14_comment},
+  {"get_p3d_geom_node", (PyCFunction) &Dtool_GeomStore_get_p3d_geom_node_15, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_get_p3d_geom_node_15_comment},
   {"__copy__", &copy_from_copy_constructor, METH_NOARGS, nullptr},
   {"__deepcopy__", &map_deepcopy_to_copy, METH_VARARGS, nullptr},
   {nullptr, nullptr, 0, nullptr}
@@ -564,7 +825,7 @@ static PyMethodDef Dtool_Methods_GeomStore[] = {
 // A wrapper function to satisfy Python's internal calling conventions.
 // GeomStore slot nb_add -> operator +
 //////////////////
-static PyObject *Dtool_GeomStore_operator_12_nb_add(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_operator_16_nb_add(PyObject *self, PyObject *arg) {
   GeomStore *local_this = nullptr;
   DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
   if (local_this == nullptr) {
@@ -634,7 +895,7 @@ static PyObject *Dtool_GeomStore_operator_12_nb_add(PyObject *self, PyObject *ar
 // A wrapper function to satisfy Python's internal calling conventions.
 // GeomStore slot nb_divide -> operator /
 //////////////////
-static PyObject *Dtool_GeomStore_operator_15_nb_divide(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_operator_19_nb_divide(PyObject *self, PyObject *arg) {
   GeomStore *local_this = nullptr;
   DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
   if (local_this == nullptr) {
@@ -642,17 +903,53 @@ static PyObject *Dtool_GeomStore_operator_15_nb_divide(PyObject *self, PyObject 
     return Py_NotImplemented;
   }
   if (!DtoolInstance_IS_CONST(self)) {
-    // 1-int GeomStore::operator /(float v)
-    if (PyNumber_Check(arg)) {
-      int return_value = (*local_this).operator /((float)PyFloat_AsDouble(arg));
+    {
+      // -2 int GeomStore::operator /(LVecBase3f v)
+      LVecBase3f *arg_this = nullptr;
+      DtoolInstance_GetPointer(arg, arg_this, *Dtool_Ptr_LVecBase3f);
+      if (arg_this != nullptr) {
+        int return_value = (*local_this).operator /(*arg_this);
 #ifndef NDEBUG
-      Notify *notify = Notify::ptr();
-      if (UNLIKELY(notify->has_assert_failed())) {
-        return Dtool_Raise_AssertionError();
-      }
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
 #endif
-      return Dtool_WrapValue(return_value);
+        return Dtool_WrapValue(return_value);
+      }
     }
+
+    {
+      // -2 int GeomStore::operator /(float v)
+      if (PyNumber_Check(arg)) {
+        int return_value = (*local_this).operator /((float)PyFloat_AsDouble(arg));
+#ifndef NDEBUG
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
+#endif
+        return Dtool_WrapValue(return_value);
+      }
+    }
+
+    {
+      // -2 int GeomStore::operator /(LVecBase3f v)
+      LVecBase3f arg_local;
+      LVecBase3f *arg_this = Dtool_Coerce_LVecBase3f(arg, arg_local);
+      if ((arg_this != nullptr)) {
+        int return_value = (*local_this).operator /(*arg_this);
+#ifndef NDEBUG
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
+#endif
+        return Dtool_WrapValue(return_value);
+      }
+    }
+
+    // No coercion possible: int GeomStore::operator /(float v)
   } else {
 #ifdef NDEBUG
     return Dtool_Raise_TypeError("non-const method called on const object");
@@ -668,7 +965,7 @@ static PyObject *Dtool_GeomStore_operator_15_nb_divide(PyObject *self, PyObject 
 // A wrapper function to satisfy Python's internal calling conventions.
 // GeomStore slot nb_multiply -> operator *
 //////////////////
-static PyObject *Dtool_GeomStore_operator_14_nb_multiply(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_operator_18_nb_multiply(PyObject *self, PyObject *arg) {
   GeomStore *local_this = nullptr;
   DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
   if (local_this == nullptr) {
@@ -676,17 +973,53 @@ static PyObject *Dtool_GeomStore_operator_14_nb_multiply(PyObject *self, PyObjec
     return Py_NotImplemented;
   }
   if (!DtoolInstance_IS_CONST(self)) {
-    // 1-int GeomStore::operator *(float v)
-    if (PyNumber_Check(arg)) {
-      int return_value = (*local_this).operator *((float)PyFloat_AsDouble(arg));
+    {
+      // -2 int GeomStore::operator *(LVecBase3f v)
+      LVecBase3f *arg_this = nullptr;
+      DtoolInstance_GetPointer(arg, arg_this, *Dtool_Ptr_LVecBase3f);
+      if (arg_this != nullptr) {
+        int return_value = (*local_this).operator *(*arg_this);
 #ifndef NDEBUG
-      Notify *notify = Notify::ptr();
-      if (UNLIKELY(notify->has_assert_failed())) {
-        return Dtool_Raise_AssertionError();
-      }
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
 #endif
-      return Dtool_WrapValue(return_value);
+        return Dtool_WrapValue(return_value);
+      }
     }
+
+    {
+      // -2 int GeomStore::operator *(float v)
+      if (PyNumber_Check(arg)) {
+        int return_value = (*local_this).operator *((float)PyFloat_AsDouble(arg));
+#ifndef NDEBUG
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
+#endif
+        return Dtool_WrapValue(return_value);
+      }
+    }
+
+    {
+      // -2 int GeomStore::operator *(LVecBase3f v)
+      LVecBase3f arg_local;
+      LVecBase3f *arg_this = Dtool_Coerce_LVecBase3f(arg, arg_local);
+      if ((arg_this != nullptr)) {
+        int return_value = (*local_this).operator *(*arg_this);
+#ifndef NDEBUG
+        Notify *notify = Notify::ptr();
+        if (UNLIKELY(notify->has_assert_failed())) {
+          return Dtool_Raise_AssertionError();
+        }
+#endif
+        return Dtool_WrapValue(return_value);
+      }
+    }
+
+    // No coercion possible: int GeomStore::operator *(float v)
   } else {
 #ifdef NDEBUG
     return Dtool_Raise_TypeError("non-const method called on const object");
@@ -702,7 +1035,7 @@ static PyObject *Dtool_GeomStore_operator_14_nb_multiply(PyObject *self, PyObjec
 // A wrapper function to satisfy Python's internal calling conventions.
 // GeomStore slot nb_subtract -> operator -
 //////////////////
-static PyObject *Dtool_GeomStore_operator_13_nb_subtract(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_operator_17_nb_subtract(PyObject *self, PyObject *arg) {
   GeomStore *local_this = nullptr;
   DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
   if (local_this == nullptr) {
@@ -773,7 +1106,7 @@ static PyObject *Dtool_GeomStore_operator_13_nb_subtract(PyObject *self, PyObjec
 // A wrapper function to satisfy Python's internal calling conventions.
 // GeomStore slot nb_true_divide -> operator /
 //////////////////
-static PyObject *Dtool_GeomStore_operator_15_nb_true_divide(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_operator_19_nb_true_divide(PyObject *self, PyObject *arg) {
   GeomStore *local_this = nullptr;
   DTOOL_Call_ExtractThisPointerForType(self, &Dtool_GeomStore, (void **)&local_this);
   if (local_this == nullptr) {
@@ -812,11 +1145,11 @@ static PyGetSetDef Dtool_Properties_GeomStore[] = {
 };
 
 static PyNumberMethods Dtool_NumberMethods_GeomStore = {
-  &Dtool_GeomStore_operator_12_nb_add,
-  &Dtool_GeomStore_operator_13_nb_subtract,
-  &Dtool_GeomStore_operator_14_nb_multiply,
+  &Dtool_GeomStore_operator_16_nb_add,
+  &Dtool_GeomStore_operator_17_nb_subtract,
+  &Dtool_GeomStore_operator_18_nb_multiply,
 #if PY_MAJOR_VERSION < 3
-  &Dtool_GeomStore_operator_15_nb_divide,
+  &Dtool_GeomStore_operator_19_nb_divide,
 #endif
   nullptr,
   nullptr,
@@ -856,7 +1189,7 @@ static PyNumberMethods Dtool_NumberMethods_GeomStore = {
   nullptr,
   nullptr,
 #if PY_VERSION_HEX >= 0x3000000
-  &Dtool_GeomStore_operator_15_nb_true_divide,
+  &Dtool_GeomStore_operator_19_nb_true_divide,
 #else
   nullptr,
 #endif
@@ -986,7 +1319,7 @@ extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports,
 extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports, imports};
 #endif
 static InterrogateModuleDef _in_module_def = {
-  1546885810,  /* file_identifier */
+  1546897801,  /* file_identifier */
   "geomstore",  /* library_name */
   "Kshb",  /* library_hash_name */
   "geomstore",  /* module_name */
@@ -996,7 +1329,7 @@ static InterrogateModuleDef _in_module_def = {
   nullptr,  /* fptrs */
   0,  /* num_fptrs */
   1,  /* first_index */
-  54  /* next_index */
+  71  /* next_index */
 };
 
 Configure(_in_configure_geomstore);
