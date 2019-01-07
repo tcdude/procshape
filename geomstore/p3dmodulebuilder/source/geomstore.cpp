@@ -26,36 +26,23 @@ GeomStore::
  * Add vertex with position v and color (1.0, 1.0, 1.0, 1.0) to the GeomStore.
  */
 int GeomStore::
-add_vertex(LVecBase3f v) {
-  for (int i = 0; i < _vertices.size(); i++) {
-    if (_vertex_positions[i] == v && _colors[i] == LVecBase4f(1.0)) {
-      return i;
-    }
-  }
-  int id = _vertices.size();
-  _vertex_positions.push_back(v);
-  _colors.push_back(LVecBase4f(1.0f));
-  Vertex* vert = new Vertex(
-    &_vertex_positions.back(), 
-    &_colors.back(), 
-    id);
-  _vertices.push_back(vert);
-  return id;
+add_vertex(LVecBase3f point) {
+  return add_vertex(point, LVecBase4f(1.0f));
 }
 
 /**
  * Add vertex with position v and color c to the GeomStore.
  */
 int GeomStore::
-add_vertex(LVecBase3f v, LVecBase4f c) {
+add_vertex(LVecBase3f point, LVecBase4f color) {
   for (int i = 0; i < _vertices.size(); i++) {
-    if (_vertex_positions[i] == v && _colors[i] == c) {
+    if (_vertex_positions[i] == point && _colors[i] == color) {
       return i;
     }
   }
   int id = _vertices.size();
-  _vertex_positions.push_back(v);
-  _colors.push_back(c);
+  _vertex_positions.push_back(point);
+  _colors.push_back(color);
   Vertex* vert = new Vertex(
     &_vertex_positions.back(), 
     &_colors.back(), 
@@ -87,8 +74,8 @@ add_triangle(int v0, int v1, int v2) {
  * approximately the same size over the entire GeomStore.
  */
 void GeomStore::
-subdivide_triangles(int s) {
-  for (int j = 0; j < s; j++) {
+subdivide_triangles(int subdivisions) {
+  for (int j = 0; j < subdivisions; j++) {
     subdivide();
   }
 }
@@ -99,8 +86,8 @@ subdivide_triangles(int s) {
  * than subdivide_triangles(int s).
  */
 void GeomStore::
-subdivide_triangles_distance(float d) {
-  while (subdivide(d));
+subdivide_triangles_distance(float target_distance) {
+  while (subdivide(target_distance));
 }
 
 /**
@@ -160,9 +147,9 @@ extend(GeomStore *other) {
  * Sets the color of all vertices to c
  */
 void GeomStore::
-set_color(LVecBase4f c) {
+set_color(LVecBase4f color) {
   for (int i = 0; i < _colors.size(); i++) {
-    _colors[i] = c;
+    _colors[i] = color;
   }
 }
 
@@ -170,9 +157,9 @@ set_color(LVecBase4f c) {
  * Sets the color of all vertices in filter to c
  */
 void GeomStore::
-set_color(LVecBase4f c, PTA(int) filter) {
-  for (int i = 0; i < filter.size(); i++) {
-    _colors[filter[i]] = c;
+set_color(LVecBase4f color, PTA(int) selection) {
+  for (int i = 0; i < selection.size(); i++) {
+    _colors[selection[i]] = color;
   }
 }
 

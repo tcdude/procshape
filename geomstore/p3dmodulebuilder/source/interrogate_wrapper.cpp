@@ -243,8 +243,8 @@ static const char *Dtool_GeomStore_print_triangles_6_comment = nullptr;
 
 /**
  * Python function wrapper for:
- * int GeomStore::add_vertex(LVecBase3f v)
- * int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c)
+ * int GeomStore::add_vertex(LVecBase3f point)
+ * int GeomStore::add_vertex(LVecBase3f point, LVecBase4f color)
  */
 static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, PyObject *kwds) {
   GeomStore *local_this = nullptr;
@@ -259,8 +259,8 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
   case 1:
     {
       PyObject *arg;
-      if (Dtool_ExtractArg(&arg, args, kwds, "v")) {
-        // 1-int GeomStore::add_vertex(LVecBase3f v)
+      if (Dtool_ExtractArg(&arg, args, kwds, "point")) {
+        // 1-int GeomStore::add_vertex(LVecBase3f point)
         LVecBase3f arg_local;
         LVecBase3f *arg_this = Dtool_Coerce_LVecBase3f(arg, arg_local);
         if (!(arg_this != nullptr)) {
@@ -276,10 +276,10 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
     break;
   case 2:
     {
-      // 1-int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c)
+      // 1-int GeomStore::add_vertex(LVecBase3f point, LVecBase4f color)
       PyObject *param1;
       PyObject *param2;
-      static const char *keyword_list[] = {"v", "c", nullptr};
+      static const char *keyword_list[] = {"point", "color", nullptr};
       if (PyArg_ParseTupleAndKeywords(args, kwds, "OO:add_vertex", (char **)keyword_list, &param1, &param2)) {
         LVecBase3f param1_local;
         LVecBase3f *param1_this = Dtool_Coerce_LVecBase3f(param1, param1_local);
@@ -308,8 +308,8 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
   }
   if (!_PyErr_OCCURRED()) {
     return Dtool_Raise_BadArgumentsError(
-      "add_vertex(const GeomStore self, LVecBase3f v)\n"
-      "add_vertex(const GeomStore self, LVecBase3f v, LVecBase4f c)\n");
+      "add_vertex(const GeomStore self, LVecBase3f point)\n"
+      "add_vertex(const GeomStore self, LVecBase3f point, LVecBase4f color)\n");
   }
   return nullptr;
 }
@@ -317,8 +317,8 @@ static PyObject *Dtool_GeomStore_add_vertex_7(PyObject *self, PyObject *args, Py
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_add_vertex_7_comment =
   "C++ Interface:\n"
-  "add_vertex(const GeomStore self, LVecBase3f v)\n"
-  "add_vertex(const GeomStore self, LVecBase3f v, LVecBase4f c)\n"
+  "add_vertex(const GeomStore self, LVecBase3f point)\n"
+  "add_vertex(const GeomStore self, LVecBase3f point, LVecBase4f color)\n"
   "\n"
   "/**\n"
   " * Add vertex with position v and color (1.0, 1.0, 1.0, 1.0) to the GeomStore.\n"
@@ -373,29 +373,23 @@ static const char *Dtool_GeomStore_add_triangle_8_comment = nullptr;
 
 /**
  * Python function wrapper for:
- * void GeomStore::subdivide_triangles(int s)
+ * void GeomStore::subdivide_triangles(int subdivisions = 1)
  */
-static PyObject *Dtool_GeomStore_subdivide_triangles_9(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_subdivide_triangles_9(PyObject *self, PyObject *args, PyObject *kwds) {
   GeomStore *local_this = nullptr;
   if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.subdivide_triangles")) {
     return nullptr;
   }
-  // 1-void GeomStore::subdivide_triangles(int s)
-  if (PyLongOrInt_Check(arg)) {
-    long arg_val = PyLongOrInt_AS_LONG(arg);
-#if (SIZEOF_LONG > SIZEOF_INT) && !defined(NDEBUG)
-    if (arg_val < INT_MIN || arg_val > INT_MAX) {
-      return PyErr_Format(PyExc_OverflowError,
-                          "value %ld out of range for signed integer",
-                          arg_val);
-    }
-#endif
-    (*local_this).subdivide_triangles((int)arg_val);
+  // 1-void GeomStore::subdivide_triangles(int subdivisions = 1)
+  int param1 = 1;
+  static const char *keyword_list[] = {"subdivisions", nullptr};
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "|i:subdivide_triangles", (char **)keyword_list, &param1)) {
+    (*local_this).subdivide_triangles((int)param1);
     return Dtool_Return_None();
   }
   if (!_PyErr_OCCURRED()) {
     return Dtool_Raise_BadArgumentsError(
-      "subdivide_triangles(const GeomStore self, int s)\n");
+      "subdivide_triangles(const GeomStore self, int subdivisions)\n");
   }
   return nullptr;
 }
@@ -403,7 +397,7 @@ static PyObject *Dtool_GeomStore_subdivide_triangles_9(PyObject *self, PyObject 
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_subdivide_triangles_9_comment =
   "C++ Interface:\n"
-  "subdivide_triangles(const GeomStore self, int s)\n"
+  "subdivide_triangles(const GeomStore self, int subdivisions)\n"
   "\n"
   "/**\n"
   " * Subdivide triangles s times. This is useful when the triangles already are\n"
@@ -415,21 +409,23 @@ static const char *Dtool_GeomStore_subdivide_triangles_9_comment = nullptr;
 
 /**
  * Python function wrapper for:
- * void GeomStore::subdivide_triangles_distance(float d)
+ * void GeomStore::subdivide_triangles_distance(float target_distance = 2.0)
  */
-static PyObject *Dtool_GeomStore_subdivide_triangles_distance_10(PyObject *self, PyObject *arg) {
+static PyObject *Dtool_GeomStore_subdivide_triangles_distance_10(PyObject *self, PyObject *args, PyObject *kwds) {
   GeomStore *local_this = nullptr;
   if (!Dtool_Call_ExtractThisPointer_NonConst(self, Dtool_GeomStore, (void **)&local_this, "GeomStore.subdivide_triangles_distance")) {
     return nullptr;
   }
-  // 1-void GeomStore::subdivide_triangles_distance(float d)
-  if (PyNumber_Check(arg)) {
-    (*local_this).subdivide_triangles_distance((float)PyFloat_AsDouble(arg));
+  // 1-void GeomStore::subdivide_triangles_distance(float target_distance = 2.0)
+  float param1 = 2.0;
+  static const char *keyword_list[] = {"target_distance", nullptr};
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "|f:subdivide_triangles_distance", (char **)keyword_list, &param1)) {
+    (*local_this).subdivide_triangles_distance((float)param1);
     return Dtool_Return_None();
   }
   if (!_PyErr_OCCURRED()) {
     return Dtool_Raise_BadArgumentsError(
-      "subdivide_triangles_distance(const GeomStore self, float d)\n");
+      "subdivide_triangles_distance(const GeomStore self, float target_distance)\n");
   }
   return nullptr;
 }
@@ -437,7 +433,7 @@ static PyObject *Dtool_GeomStore_subdivide_triangles_distance_10(PyObject *self,
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_subdivide_triangles_distance_10_comment =
   "C++ Interface:\n"
-  "subdivide_triangles_distance(const GeomStore self, float d)\n"
+  "subdivide_triangles_distance(const GeomStore self, float target_distance)\n"
   "\n"
   "/**\n"
   " * Subdivides triangles until every hypothenuse is <= d (length in model view).\n"
@@ -485,8 +481,8 @@ static const char *Dtool_GeomStore_extend_11_comment = nullptr;
 
 /**
  * Python function wrapper for:
- * void GeomStore::set_color(LVecBase4f c)
- * void GeomStore::set_color(LVecBase4f c, PointerToArray< int > filter)
+ * void GeomStore::set_color(LVecBase4f color)
+ * void GeomStore::set_color(LVecBase4f color, PointerToArray< int > selection)
  */
 static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, PyObject *kwds) {
   GeomStore *local_this = nullptr;
@@ -501,8 +497,8 @@ static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, Py
   case 1:
     {
       PyObject *arg;
-      if (Dtool_ExtractArg(&arg, args, kwds, "c")) {
-        // 1-void GeomStore::set_color(LVecBase4f c)
+      if (Dtool_ExtractArg(&arg, args, kwds, "color")) {
+        // 1-void GeomStore::set_color(LVecBase4f color)
         LVecBase4f arg_local;
         LVecBase4f *arg_this = Dtool_Coerce_LVecBase4f(arg, arg_local);
         if (!(arg_this != nullptr)) {
@@ -515,10 +511,10 @@ static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, Py
     break;
   case 2:
     {
-      // 1-void GeomStore::set_color(LVecBase4f c, PointerToArray< int > filter)
+      // 1-void GeomStore::set_color(LVecBase4f color, PointerToArray< int > selection)
       PyObject *param1;
       PyObject *param2;
-      static const char *keyword_list[] = {"c", "filter", nullptr};
+      static const char *keyword_list[] = {"color", "selection", nullptr};
       if (PyArg_ParseTupleAndKeywords(args, kwds, "OO:set_color", (char **)keyword_list, &param1, &param2)) {
         LVecBase4f param1_local;
         LVecBase4f *param1_this = Dtool_Coerce_LVecBase4f(param1, param1_local);
@@ -544,8 +540,8 @@ static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, Py
   }
   if (!_PyErr_OCCURRED()) {
     return Dtool_Raise_BadArgumentsError(
-      "set_color(const GeomStore self, LVecBase4f c)\n"
-      "set_color(const GeomStore self, LVecBase4f c, PointerToArray filter)\n");
+      "set_color(const GeomStore self, LVecBase4f color)\n"
+      "set_color(const GeomStore self, LVecBase4f color, PointerToArray selection)\n");
   }
   return nullptr;
 }
@@ -553,8 +549,8 @@ static PyObject *Dtool_GeomStore_set_color_12(PyObject *self, PyObject *args, Py
 #ifndef NDEBUG
 static const char *Dtool_GeomStore_set_color_12_comment =
   "C++ Interface:\n"
-  "set_color(const GeomStore self, LVecBase4f c)\n"
-  "set_color(const GeomStore self, LVecBase4f c, PointerToArray filter)\n"
+  "set_color(const GeomStore self, LVecBase4f color)\n"
+  "set_color(const GeomStore self, LVecBase4f color, PointerToArray selection)\n"
   "\n"
   "/**\n"
   " * Sets the color of all vertices to c\n"
@@ -809,8 +805,8 @@ static PyMethodDef Dtool_Methods_GeomStore[] = {
   {"print_triangles", &Dtool_GeomStore_print_triangles_6, METH_NOARGS, (const char *)Dtool_GeomStore_print_triangles_6_comment},
   {"add_vertex", (PyCFunction) &Dtool_GeomStore_add_vertex_7, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_add_vertex_7_comment},
   {"add_triangle", (PyCFunction) &Dtool_GeomStore_add_triangle_8, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_add_triangle_8_comment},
-  {"subdivide_triangles", &Dtool_GeomStore_subdivide_triangles_9, METH_O, (const char *)Dtool_GeomStore_subdivide_triangles_9_comment},
-  {"subdivide_triangles_distance", &Dtool_GeomStore_subdivide_triangles_distance_10, METH_O, (const char *)Dtool_GeomStore_subdivide_triangles_distance_10_comment},
+  {"subdivide_triangles", (PyCFunction) &Dtool_GeomStore_subdivide_triangles_9, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_subdivide_triangles_9_comment},
+  {"subdivide_triangles_distance", (PyCFunction) &Dtool_GeomStore_subdivide_triangles_distance_10, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_subdivide_triangles_distance_10_comment},
   {"extend", &Dtool_GeomStore_extend_11, METH_O, (const char *)Dtool_GeomStore_extend_11_comment},
   {"set_color", (PyCFunction) &Dtool_GeomStore_set_color_12, METH_VARARGS | METH_KEYWORDS, (const char *)Dtool_GeomStore_set_color_12_comment},
   {"normals_as_color", &Dtool_GeomStore_normals_as_color_13, METH_NOARGS, (const char *)Dtool_GeomStore_normals_as_color_13_comment},
@@ -1319,7 +1315,7 @@ extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports,
 extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports, imports};
 #endif
 static InterrogateModuleDef _in_module_def = {
-  1546897801,  /* file_identifier */
+  1546900489,  /* file_identifier */
   "geomstore",  /* library_name */
   "Kshb",  /* library_hash_name */
   "geomstore",  /* module_name */

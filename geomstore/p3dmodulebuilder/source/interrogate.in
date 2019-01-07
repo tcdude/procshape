@@ -1,4 +1,4 @@
-1546897801
+1546900489
 3 3
 9 geomstore 4 Kshb 9 geomstore 
 21
@@ -31,9 +31,9 @@ void GeomStore::print_triangles(void);
 /**
  * Add vertex with position v and color c to the GeomStore.
  */
-95
-int GeomStore::add_vertex(LVecBase3f v);
-int GeomStore::add_vertex(LVecBase3f v, LVecBase4f c);
+107
+int GeomStore::add_vertex(LVecBase3f point);
+int GeomStore::add_vertex(LVecBase3f point, LVecBase4f color);
 
 31 12 add_triangle 0 4 46 23 GeomStore::add_triangle 0 1 8 43
 /**
@@ -47,8 +47,8 @@ int GeomStore::add_triangle(int v0, int v1, int v2);
  * Subdivide triangles s times. This is useful when the triangles already are
  * approximately the same size over the entire GeomStore.
  */
-43
-void GeomStore::subdivide_triangles(int s);
+58
+void GeomStore::subdivide_triangles(int subdivisions = 1);
 
 33 28 subdivide_triangles_distance 0 4 46 39 GeomStore::subdivide_triangles_distance 0 1 10 202
 /**
@@ -56,8 +56,8 @@ void GeomStore::subdivide_triangles(int s);
  * Use this when the triangles in GeomStore are of mixed size. Less efficient 
  * than subdivide_triangles(int s).
  */
-54
-void GeomStore::subdivide_triangles_distance(float d);
+74
+void GeomStore::subdivide_triangles_distance(float target_distance = 2.0);
 
 34 6 extend 0 4 46 17 GeomStore::extend 0 1 11 141
 /**
@@ -75,9 +75,9 @@ void GeomStore::extend(GeomStore *other);
 /**
  * Sets the color of all vertices in filter to c
  */
-111
-void GeomStore::set_color(LVecBase4f c);
-void GeomStore::set_color(LVecBase4f c, PointerToArray< int > filter);
+122
+void GeomStore::set_color(LVecBase4f color);
+void GeomStore::set_color(LVecBase4f color, PointerToArray< int > selection);
 
 36 16 normals_as_color 0 4 46 27 GeomStore::normals_as_color 0 1 14 72
 /**
@@ -144,32 +144,32 @@ PTA_LVecBase3i GeomStore::get_triangle_indices(void) const;
 5 0 0 4 6 56 0 0 0 1 4 this 3 53  
 6 0 0 6 7 59 0 0 86 /**
  * Add vertex with position v and color (1.0, 1.0, 1.0, 1.0) to the GeomStore.
- */ 2 4 this 3 53  1 v 1 57  
+ */ 2 4 this 3 53  5 point 1 57  
 7 0 0 6 7 59 0 0 67 /**
  * Add vertex with position v and color c to the GeomStore.
- */ 3 4 this 3 53  1 v 1 57  1 c 1 60  
+ */ 3 4 this 3 53  5 point 1 57  5 color 1 60  
 8 0 0 6 8 59 0 0 43 /**
  * Add a triangle to the GeomStore.
  */ 4 4 this 3 53  2 v0 1 59  2 v1 1 59  2 v2 1 59  
 9 0 0 4 9 56 0 0 143 /**
  * Subdivide triangles s times. This is useful when the triangles already are
  * approximately the same size over the entire GeomStore.
- */ 2 4 this 3 53  1 s 1 59  
+ */ 2 4 this 3 53  12 subdivisions 1 59  
 10 0 0 4 10 56 0 0 202 /**
  * Subdivides triangles until every hypothenuse is <= d (length in model view).
  * Use this when the triangles in GeomStore are of mixed size. Less efficient 
  * than subdivide_triangles(int s).
- */ 2 4 this 3 53  1 d 1 62  
+ */ 2 4 this 3 53  15 target_distance 1 62  
 11 0 0 4 11 56 0 0 141 /**
  * Extend this GeomStore with all Vertices and Triangles from other while
  * leaving other intact (New objects are being generated!).
  */ 2 4 this 3 53  5 other 1 53  
 12 0 0 4 12 56 0 0 46 /**
  * Sets the color of all vertices to c
- */ 2 4 this 3 53  1 c 1 60  
+ */ 2 4 this 3 53  5 color 1 60  
 13 0 0 4 12 56 0 0 56 /**
  * Sets the color of all vertices in filter to c
- */ 3 4 this 3 53  1 c 1 60  6 filter 1 63  
+ */ 3 4 this 3 53  5 color 1 60  9 selection 1 63  
 14 0 0 4 13 56 0 0 72 /**
  * Sets the vertex color to the corresponding unit length vector
  */ 1 4 this 3 53  
