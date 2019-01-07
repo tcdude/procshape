@@ -11,6 +11,11 @@ using namespace std;
 
 GeomStore::
 GeomStore() {
+  _vertices.reserve((int)1e6);
+  _triangles.reserve((int)1e6);
+  _vertex_positions.reserve((int)1e6);
+  _colors.reserve((int)1e6);
+  _triangle_indices.reserve((int)1e6);
   /*_vertex_positions.push_back(LVecBase3f(1.0f, 0.0f, 0.0f));
   _vertex_positions.push_back(LVecBase3f(0.0f, 1.0f, 0.0f));
   _vertex_positions.push_back(LVecBase3f(0.0f, 0.0f, 1.0f));
@@ -24,96 +29,65 @@ GeomStore::
 ~GeomStore() {
 }
 
-void GeomStore::
-print_vertices() {
-  print_pta(_vertex_positions);
-}
-
-void GeomStore::
-print_triangles() {
-  print_pta(_triangle_indices);
-}
-
-void GeomStore::
-print_colors() {
-  print_pta(_colors);
-}
-
-void GeomStore::
-print_pta(PTA_LVecBase3f _pta) {
-  cout << "[";
-  for (int i = 0; i < _pta.size(); i++) {
-    if (i != 0) {
-      cout << " ";
-    }
-    cout << "[" << _pta[i] << "]";
-    if (i < _pta.size() - 1) {
-      cout << endl;
-    }
-  }
-  cout << "]" << endl;
-}
-
-void GeomStore::
-print_pta(PTA_LVecBase3i _pta) {
-  cout << "[";
-  for (int i = 0; i < _pta.size(); i++) {
-    if (i != 0) {
-      cout << " ";
-    }
-    cout << "[" << _pta[i] << "]";
-    if (i < _pta.size() - 1) {
-      cout << endl;
-    }
-  }
-  cout << "]" << endl;
-}
-
-void GeomStore::
-print_pta(PTA_LVecBase4f _pta) {
-  cout << "[";
-  for (int i = 0; i < _pta.size(); i++) {
-    if (i != 0) {
-      cout << " ";
-    }
-    LVecBase4f v = (LVecBase4f) _pta[i];
-    cout << "[" << _pta[i] << "]";
-    if (i < _pta.size() - 1) {
-      cout << endl;
-    }
-  }
-  cout << "]" << endl;
-}
-
 int GeomStore::
 add_vertex(LVecBase3f v, LVecBase4f c) {
+  for (int i = 0; i < _vertices.size(); i++) {
+    if (_vertex_positions[i] == v && _colors[i] == c) {
+      return i;
+    }
+  }
   int id = _vertices.size();
   _vertex_positions.push_back(v);
   _colors.push_back(c);
-  Vertex vert = Vertex(
+  Vertex* vert = new Vertex(
     &_vertex_positions.back(), 
     &_colors.back(), 
-    id
-    );
-  _vertices.push_back(&vert);
+    id);
+  _vertices.push_back(vert);
   return id;
 }
 
 int GeomStore:: 
 add_triangle(int v0, int v1, int v2) {
   int id = _triangles.size();
-  Triangle tri = Triangle(
+  Triangle* tri = new Triangle(
     _vertices[v0],
     _vertices[v1],
-    _vertices[v2]
-  );
-  _triangles.push_back(&tri);
+    _vertices[v2]);
+  _triangles.push_back(tri);
+  LVecBase3i indices = LVecBase3i(v0, v1, v2);
+  _triangle_indices.push_back(indices);
   return id;
 }
 
+/**
+ * Subdivide triangles s times
+ */
 void GeomStore::
 subdivide_triangles(int s) {
-
+  for (int j = 0; j < s; j++) {
+    int current_size = _triangles.size();
+    for (int i = 0; i < current_size; i++) {
+      int start_id = _triangles[i]->_longest_edge_index;
+      int end_id = (start_id + 1) % 3;
+      int last_id = (start_id + 2) % 3;
+      LVecBase3f v_new = *_triangles[i]->vertex[end_id]->position - 
+        *_triangles[i]->vertex[start_id]->position;
+      LVecBase3f s_pos = *_triangles[i]->vertex[start_id]->position;
+      v_new = s_pos + v_new * 0.5f;
+      UnalignedLVecBase4f c_new = UnalignedLVecBase4f(0.0f, 0.0f, 0.0f, 0.0f);
+      for (int k = 0; k < 4; k++) {
+        c_new[k] = (_colors[_triangles[i]->vertex[end_id]->id][k] +  
+          _colors[_triangles[i]->vertex[start_id]->id][k]) * 0.5f;
+      }
+      int vert_id = add_vertex(v_new, c_new);
+      add_triangle(vert_id, _triangles[i]->vertex[end_id]->id, 
+        _triangles[i]->vertex[last_id]->id);
+      _triangles[i]->replace_vertex(_triangles[i]->vertex[end_id], 
+        _vertices[vert_id]);
+      _triangle_indices[i][end_id] = vert_id;
+    }
+  }
 }
 
 void GeomStore::
@@ -208,3 +182,68 @@ operator / (float v) {
   }
   return 0;
 }
+
+/**
+ * Debugging methods to test the content of the various PTAs
+ */
+void GeomStore::
+print_vertices() {
+  print_pta(_vertex_positions);
+}
+
+void GeomStore::
+print_triangles() {
+  print_pta(_triangle_indices);
+}
+
+void GeomStore::
+print_colors() {
+  print_pta(_colors);
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase3f _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase3i _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+
+void GeomStore::
+print_pta(PTA_LVecBase4f _pta) {
+  cout << "[";
+  for (int i = 0; i < _pta.size(); i++) {
+    if (i != 0) {
+      cout << " ";
+    }
+    LVecBase4f v = (LVecBase4f) _pta[i];
+    cout << "[" << _pta[i] << "]";
+    if (i < _pta.size() - 1) {
+      cout << endl;
+    }
+  }
+  cout << "]" << endl;
+}
+

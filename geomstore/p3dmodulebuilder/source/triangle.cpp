@@ -6,6 +6,8 @@
 
 #include "triangle.h"
 
+using namespace std;
+
 /**
  * Simple representation of a triangle in a mesh with 
  * useful functions for edge collapse based on 
@@ -15,20 +17,17 @@
  */
 Triangle::
 Triangle(Vertex *v0, Vertex *v1, Vertex *v2) {
-	std::cout << &v0 << std::endl;
-	std::cout << &v1 << std::endl;
-	std::cout << &v2 << std::endl; 
-	std::cout << (&v0 == &v1) << std::endl; 
-	std::cout << (&v1 == &v2) << std::endl; 
-	std::cout << (&v2 == &v0) << std::endl; 
-  nassertv(&v0 != &v1 && &v1 != &v2 && &v2 != &v0);
+  nassertv(v0 != v1 && v1 != v2 && v2 != v0);
   vertex[0] = v0;
   vertex[1] = v1;
   vertex[2] = v2;
   compute_normal();
-  for(int i = 0; i < 3; i++) {
-    vertex[i];
-  }
+	compute_longest_edge();
+	for (int i = 0; i < 3; i++) {
+		vertex[i]->face.push_back(this);
+		vertex[i]->add_neighbor(vertex[(i + 1) % 3]);
+		vertex[i]->add_neighbor(vertex[(i - 1) % 3]);
+	}
 }
 
 Triangle::
@@ -46,7 +45,7 @@ Triangle::
 
 int Triangle::
 has_vertex(Vertex *v) {
-	return (v==vertex[0] ||v==vertex[1] || v==vertex[2]);
+	return (v==vertex[0] || v==vertex[1] || v==vertex[2]);
 }
 
 void Triangle::
@@ -58,6 +57,22 @@ compute_normal()
 	normal = (v1 - v0).cross((v2 - v1));
 	if(length(normal) == 0)return;
 	normal = normal.normalized();
+}
+
+void Triangle::
+compute_longest_edge()
+{
+	float max_dist = 0.0;
+	_longest_edge_index = -1;
+	for (int i = 0; i < 3; i++) {
+		LVecBase3f v = *vertex[(i + 1) % 3]->position - *vertex[i]->position;
+		float dist = v.length();
+		if (dist > max_dist) {
+			max_dist = dist;
+			_longest_edge_index = i;
+		}
+	}
+	nassertv(_longest_edge_index > -1 && _longest_edge_index < 3);
 }
 
 void Triangle::
@@ -90,4 +105,5 @@ replace_vertex(Vertex *v_old, Vertex *v_new)
 		}
 	}
 	compute_normal();
+	compute_longest_edge();
 } 

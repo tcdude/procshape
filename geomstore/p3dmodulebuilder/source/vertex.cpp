@@ -6,6 +6,8 @@
 
 #include "vertex.h"
 
+using namespace std;
+
 /**
  * Simple representation of a vertex in a mesh with 
  * useful functions for edge collapse based on 
@@ -30,9 +32,16 @@ Vertex::
 }
 
 void Vertex::
+add_neighbor(Vertex *n) {
+	// removes n from neighbor Array if n isn't a neighbor.
+	if(contains(neighbor, n)) return;
+	neighbor.push_back(n);
+}
+
+void Vertex::
 remove_if_non_neighbor(Vertex *n) {
 	// removes n from neighbor Array if n isn't a neighbor.
-	if(!contains(neighbor,n)) return;
+	if(!contains(neighbor, n)) return;
 	for (unsigned int i = 0; i < face.size(); i++) {
 		if(face[i]->has_vertex(n)) return;
 	}

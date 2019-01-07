@@ -58,6 +58,7 @@ class GeomStore {
     PTA_LVecBase4f _colors;
     PTA_LVecBase3i _triangle_indices;
   private:
+    Vertex* get_vertex(int id);
     std::vector<Vertex *> _vertices;
     std::vector<Triangle *> _triangles;
     void print_pta(PTA_LVecBase3f _pta);

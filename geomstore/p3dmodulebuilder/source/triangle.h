@@ -28,10 +28,12 @@ class Vertex;
 class Triangle {
   public:
     Triangle(Vertex *v0, Vertex *v1, Vertex *v2);
-    virtual ~Triangle();
+    ~Triangle();
     Vertex *vertex[3];  // the 3 points that make this tri
     LVecBase3f normal;  // unit vector orthogonal to this face
+    int _longest_edge_index; // the start index of the longest edge
     void compute_normal();
+    void compute_longest_edge();
     void replace_vertex(Vertex *v_old, Vertex *v_new);
     int has_vertex(Vertex *v);
 };

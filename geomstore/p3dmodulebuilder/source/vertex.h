@@ -7,7 +7,7 @@
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 
-
+#include <iostream>
 #include <vector>
 
 #include "luse.h"
@@ -38,5 +38,6 @@ class Vertex {
     Vertex(LVecBase3f* v, UnalignedLVecBase4f* c, int _id);
     virtual ~Vertex();
     void remove_if_non_neighbor(Vertex *n);
+    void add_neighbor(Vertex *n);
 };
 #endif
