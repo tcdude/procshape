@@ -17,6 +17,8 @@
 #include "triangle.h"
 class Triangle;
 
+using namespace std;
+
 /**
  * Simple representation of a vertex in a mesh with 
  * useful functions for edge collapse based on 
@@ -31,8 +33,8 @@ class Vertex {
     LVecBase3f normal;  // location of point in euclidean space
     int id;  // place of vertex in original Array
     
-    std::vector<Vertex *> neighbor;  // adjacent vertices
-    std::vector<Triangle *> face;  // adjacent triangles
+    vector<Vertex *> neighbor;  // adjacent vertices
+    vector<Triangle *> face;  // adjacent triangles
     float objdist;  // cached cost of collapsing edge
     Vertex *collapse;  // candidate vertex for collapse
     Vertex(LVecBase3f* v, UnalignedLVecBase4f* c, int _id);

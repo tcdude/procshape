@@ -1315,7 +1315,7 @@ extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports,
 extern const struct LibraryDef geomstore_moddef = {python_simple_funcs, exports, imports};
 #endif
 static InterrogateModuleDef _in_module_def = {
-  1546900489,  /* file_identifier */
+  1546906134,  /* file_identifier */
   "geomstore",  /* library_name */
   "Kshb",  /* library_hash_name */
   "geomstore",  /* module_name */

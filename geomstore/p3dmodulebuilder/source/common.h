@@ -13,7 +13,7 @@
 #include "triangle.h"
 #include "vertex.h"
 
-template<class T> int contains(const std::vector<T> & c, const T & t) { 
+template<class T> int contains_(const std::vector<T> & c, const T & t) { 
   return std::count(begin(c), end(c), t); 
 }
 template<class T> int index_of(const std::vector<T> & c, const T & v) { 
@@ -29,16 +29,16 @@ template<class T> T pop(std::vector<T> & c) {
   return val; 
 }
 template<class T> void add_unique(std::vector<T> & c, T t) { 
-  if (!contains(c, t)) {
+  if (!contains_(c, t)) {
     c.push_back(t); 
   }
 }
 template<class T> void remove(std::vector<T> & c, T t) {
   auto it = std::find(begin(c), end(c), t); 
-  nassertv(contains(c, t)); 
+  nassertv(contains_(c, t)); 
   nassertv(it != end(c)); 
   c.erase(it); 
-  nassertv(!contains(c, t)); 
+  nassertv(!contains_(c, t)); 
 }
 
 #endif

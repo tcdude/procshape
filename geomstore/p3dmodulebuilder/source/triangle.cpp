@@ -93,16 +93,16 @@ replace_vertex(Vertex *v_old, Vertex *v_new)
 		vertex[2] = v_new;
 	}
 	remove(v_old->face, this);
-	nassertv(!contains(v_new->face, this));
+	nassertv(!contains_(v_new->face, this));
 	v_new->face.push_back(this);
 	for (int i = 0; i < 3; i++) {
 		v_old->remove_if_non_neighbor(vertex[i]);
 		vertex[i]->remove_if_non_neighbor(v_old);
 	}
 	for (int i = 0; i < 3; i++) {
-		nassertv(contains(vertex[i]->face, this) == 1);
-		for(int j=0; j < 3 ;j++) if( i!= j) {
-			add_unique(vertex[i]->neighbor,vertex[j]);
+		nassertv(contains_(vertex[i]->face, this) == 1);
+		for(int j = 0; j < 3 ;j++) if( i!= j) {
+			add_unique(vertex[i]->neighbor, vertex[j]);
 		}
 	}
 	compute_normal();

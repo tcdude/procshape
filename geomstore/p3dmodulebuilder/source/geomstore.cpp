@@ -11,8 +11,8 @@ using namespace std;
 
 GeomStore::
 GeomStore() {
-  //_vertices.reserve((int)1e6);
-  //_triangles.reserve((int)1e6);
+  _vertices.reserve((int)1e6);
+  _triangles.reserve((int)1e6);
   _vertex_positions.reserve((int)1e6);
   _colors.reserve((int)1e6);
   _triangle_indices.reserve((int)1e6);
@@ -191,40 +191,6 @@ to_unit_sphere() {
  */
 PT(GeomNode) GeomStore::
 get_p3d_geom_node(string name) {
-  /*        
-  vertex_data = GeomVertexData(
-      name,
-      GeomVertexFormat.get_v3c4(),
-      Geom.UH_static
-  )
-  total_triangles = len(self.__triangles__)
-
-  # Every triangle gets its unique set of vertices for flat shading
-  num_rows = total_triangles * 3
-  vertex_data.set_num_rows(num_rows)
-  vertex_writer = GeomVertexWriter(vertex_data, 'vertex')
-  color_writer = GeomVertexWriter(vertex_data, 'color')
-  for i in range(total_triangles):
-      triangle = self.vertices[self.triangles[i]]
-      vertex_writer.add_data3f(*triangle[0])
-      vertex_writer.add_data3f(*triangle[1])
-      vertex_writer.add_data3f(*triangle[2])
-      triangle_color = self.colors[self.triangles[i]].sum(axis=0) / 3
-      for _ in [0, 0, 0]:
-          color_writer.add_data4f(*triangle_color)
-
-  geom = Geom(vertex_data)
-  for i in range(total_triangles):
-      triangle = GeomTriangles(Geom.UH_static)
-      first = i * 3
-      triangle.add_vertex(first)
-      triangle.add_vertex(first + 1)
-      triangle.add_vertex(first + 2)
-      geom.add_primitive(triangle)
-  node = GeomNode(name)
-  node.add_geom(geom)
-  return node
-*/
   const float div_three = 1.0f / 3.0f;
   PT(GeomVertexData) vertex_data = new GeomVertexData(
     name,
@@ -252,11 +218,10 @@ get_p3d_geom_node(string name) {
 
   PT(Geom) geom = new Geom(vertex_data);
   PT(GeomTriangles) triangle = new GeomTriangles(Geom::UH_static);
-  for (int i = 0; i < _triangles.size(); i++) {
-    triangle->add_vertex(_triangle_indices[i][0]);
-    triangle->add_vertex(_triangle_indices[i][1]);
-    triangle->add_vertex(_triangle_indices[i][2]);
+  for (int i = 0; i < _triangles.size() * 3; i++) {
+    triangle->add_vertex(i);
   }
+  geom->add_primitive(triangle);
   PT(GeomNode) node = new GeomNode(name);
   node->add_geom(geom);
   return node;
