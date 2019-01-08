@@ -8,23 +8,10 @@ extern const struct LibraryDef geomstore_moddef;
 extern void Dtool_geomstore_RegisterTypes();
 extern void Dtool_geomstore_BuildInstants(PyObject *module);
 
-#if PY_MAJOR_VERSION >= 3 || !defined(NDEBUG)
-#ifdef _WIN32
-extern "C" __declspec(dllexport) PyObject *PyInit_geomstore();
-#elif __GNUC__ >= 4
-extern "C" __attribute__((visibility("default"))) PyObject *PyInit_geomstore();
+#if PY_MAJOR_VERSION >= 3
+extern "C" EXPORT_CLASS PyObject *PyInit_geomstore();
 #else
-extern "C" PyObject *PyInit_geomstore();
-#endif
-#endif
-#if PY_MAJOR_VERSION < 3 || !defined(NDEBUG)
-#ifdef _WIN32
-extern "C" __declspec(dllexport) void initgeomstore();
-#elif __GNUC__ >= 4
-extern "C" __attribute__((visibility("default"))) void initgeomstore();
-#else
-extern "C" void initgeomstore();
-#endif
+extern "C" EXPORT_CLASS void initgeomstore();
 #endif
 
 #if PY_MAJOR_VERSION >= 3
@@ -50,11 +37,6 @@ PyObject *PyInit_geomstore() {
   return module;
 }
 
-#ifndef NDEBUG
-void initgeomstore() {
-  PyErr_SetString(PyExc_ImportError, "geomstore was compiled for Python " PY_VERSION ", which is incompatible with Python 2");
-}
-#endif
 #else  // Python 2 case
 
 void initgeomstore() {
@@ -68,13 +50,6 @@ void initgeomstore() {
     Dtool_geomstore_BuildInstants(module);
   }
 }
-
-#ifndef NDEBUG
-PyObject *PyInit_geomstore() {
-  PyErr_SetString(PyExc_ImportError, "geomstore was compiled for Python " PY_VERSION ", which is incompatible with Python 3");
-  return nullptr;
-}
-#endif
 #endif
 
 #line 1 "dtool/src/interrogatedb/py_panda.cxx"
@@ -369,7 +344,7 @@ PyObject *_Dtool_Return(PyObject *value) {
 /**
  * This function converts an int value to the appropriate enum instance.
  */
-PyObject *Dtool_EnumType_New(PyTypeObject *subtype, PyObject *args, PyObject *kwds) {
+static PyObject *Dtool_EnumType_New(PyTypeObject *subtype, PyObject *args, PyObject *kwds) {
   PyObject *arg;
   if (!Dtool_ExtractArg(&arg, args, kwds, "value")) {
     return PyErr_Format(PyExc_TypeError,
