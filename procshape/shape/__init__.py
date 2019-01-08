@@ -23,7 +23,7 @@ class Shape(object):
         pass
 
     def subdivide(self, subdivisions=2):
-        self.geom_store.subdivide_mesh(subdivisions)
+        self.geom_store.subdivide_triangles(subdivisions)
 
     def subdivide_dist(self, target_distance=2):
-        self.geom_store.subdivide_mesh_dist(target_distance)
+        self.geom_store.subdivide_triangles_distance(target_distance)

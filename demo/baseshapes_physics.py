@@ -86,7 +86,7 @@ class Demo(ShowBase):
         )
         color = tuple(normal * 0.5 + 0.5) + (1.,)
         p = Plane((0., 0., 0.), bounds, normal, two_sided=True)
-        p.subdivide_dist(4)
+        p.subdivide_dist(2)
         p.geom_store.set_color(color)
         geom_node = p.geom_node
         plane_np = self.render.attach_new_node(geom_node)
@@ -109,8 +109,8 @@ class Demo(ShowBase):
         )
         hpr = Vec3(*[random.random() * 360 for _ in range(3)])
         c = Cuboid(bounding_box)
-        c.subdivide_dist(4)
-        c.geom_store.normals_as_colors()
+        c.subdivide_dist(2)
+        c.geom_store.normals_as_color()
         geom_node = c.geom_node
         cuboid_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
@@ -133,8 +133,8 @@ class Demo(ShowBase):
         )
         hpr = Vec3(*[random.random() * 360 for _ in range(3)])
         s = Spheroid(bounding_box)
-        s.subdivide_dist(4)
-        s.geom_store.normals_as_colors()
+        s.subdivide_dist(2)
+        s.geom_store.normals_as_color()
         geom_node = s.geom_node
         spheroid_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
@@ -158,8 +158,8 @@ class Demo(ShowBase):
             random.uniform(50.0, 400.0)
         )
         c = SingleCylinder(12, start_point, radii[0], end_point, radii[1])
-        c.subdivide_dist(4)
-        c.geom_store.normals_as_colors()
+        c.subdivide_dist(2)
+        c.geom_store.normals_as_color()
         geom_node = c.geom_node
         cylinder_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
