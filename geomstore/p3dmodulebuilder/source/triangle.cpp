@@ -48,18 +48,21 @@ has_vertex(Vertex *v) {
 	return (v==vertex[0] || v==vertex[1] || v==vertex[2]);
 }
 
-void Triangle::
+bool Triangle::
 compute_normal()
 {
 	LVecBase3f v0 = *vertex[0]->position;
 	LVecBase3f v1 = *vertex[1]->position;
 	LVecBase3f v2 = *vertex[2]->position;
 	normal = (v1 - v0).cross((v2 - v1));
-	if(length(normal) == 0)return;
+	if(length(normal) == 0) {
+		return false;
+	}
 	normal = normal.normalized();
+	return true;
 }
 
-void Triangle::
+bool Triangle::
 compute_longest_edge()
 {
 	float max_dist = 0.0;
@@ -73,15 +76,16 @@ compute_longest_edge()
 		}
 	}
 	_longest_edge_length = max_dist;
-	nassertv(_longest_edge_index > -1 && _longest_edge_index < 3);
+	nassertr(_longest_edge_index > -1 && _longest_edge_index < 3, false);
+	return true;
 }
 
-void Triangle::
+bool Triangle::
 replace_vertex(Vertex *v_old, Vertex *v_new) 
 {
-	nassertv(v_old && v_new);
-	nassertv(v_old == vertex[0] || v_old == vertex[1] || v_old == vertex[2]);
-	nassertv(v_new != vertex[0] && v_new != vertex[1] && v_new != vertex[2]);
+	nassertr(v_old && v_new, false);
+	nassertr(v_old == vertex[0] || v_old == vertex[1] || v_old == vertex[2], false);
+	nassertr(v_new != vertex[0] && v_new != vertex[1] && v_new != vertex[2], false);
 	if(v_old == vertex[0]){
 		vertex[0] = v_new;
 	}
@@ -93,18 +97,19 @@ replace_vertex(Vertex *v_old, Vertex *v_new)
 		vertex[2] = v_new;
 	}
 	remove(v_old->face, this);
-	nassertv(!contains_(v_new->face, this));
+	nassertr(!contains_(v_new->face, this), false);
 	v_new->face.push_back(this);
 	for (int i = 0; i < 3; i++) {
 		v_old->remove_if_non_neighbor(vertex[i]);
 		vertex[i]->remove_if_non_neighbor(v_old);
 	}
 	for (int i = 0; i < 3; i++) {
-		nassertv(contains_(vertex[i]->face, this) == 1);
+		nassertr(contains_(vertex[i]->face, this) == 1, false);
 		for(int j = 0; j < 3 ;j++) if( i!= j) {
 			add_unique(vertex[i]->neighbor, vertex[j]);
 		}
 	}
-	compute_normal();
-	compute_longest_edge();
+	nassertr(compute_normal(), false);
+	nassertr(compute_longest_edge(), false);
+	return true;
 } 

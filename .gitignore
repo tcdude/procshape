@@ -6,11 +6,13 @@ __pycache__/
 # PyCharm
 .idea/
 local_test/
-/baseshapes_physics.py
 
 # VSCode
 .vscode/
 */build/
+geomstore/p3dmodulebuilder/source/interrogate_module.cpp
+geomstore/p3dmodulebuilder/source/interrogate_wrapper.cpp
+geomstore/p3dmodulebuilder/source/interrogate.in
 geomstore/p3dmodulebuilder/linux_amd64_panda1.10.0_py36/
 .pylintrc
 

@@ -52,9 +52,7 @@ template <class T> void print_pta(T _pta) {
       }
     }
     else if (i == 4 && pta_size >= 12) {
-      cout << " ..." << endl;
-      cout << " ..." << endl;
-      cout << " ..." << endl;
+      cout << " ..." << endl << " ..." << endl << " ..." << endl;
     }
   }
   cout << "]" << endl;
@@ -73,6 +71,8 @@ class GeomStore {
     int add_triangle(int v0, int v1, int v2);
     void subdivide_triangles(int subdivisions = 1);
     void subdivide_triangles_distance(float target_distance = 2.0f);
+    void subdivide_triangles_spheroid(float target_distance = 2.0f, 
+      LVecBase3f bb = LVecBase3f(1.0f));
     void extend(GeomStore *other);
     void set_color(LVecBase4f color);
     void set_color(LVecBase4f color, PTA(int) selection);
@@ -92,9 +92,10 @@ class GeomStore {
     PTA_LVecBase3i _triangle_indices;
   private:
     Vertex* get_vertex(int id);
-    int subdivide(float d=0.0f);
+    int subdivide(float d = 0.0f, bool s = false, LVecBase3f bb = LVecBase3f(1.0f));
     vector<Vertex *> _vertices;
     vector<Triangle *> _triangles;
+    void mult_vec(LVecBase3f v);
 };
 
 #endif

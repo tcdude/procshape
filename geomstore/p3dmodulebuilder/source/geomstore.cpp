@@ -87,14 +87,31 @@ subdivide_triangles(int subdivisions) {
  */
 void GeomStore::
 subdivide_triangles_distance(float target_distance) {
-  while (subdivide(target_distance));
+  int subdivisions;
+  do {
+    subdivisions = subdivide(target_distance);
+  } while (subdivisions);
+}
+
+/**
+ * Subdivides triangles until every hypothenuse is <= d (length in model view)
+ * while also performing the following steps after each subdivision:
+ *  1. normalize the new vertex to unit length
+ *  2. multiply the vector by bb (Bounding Box)
+ */
+void GeomStore::
+subdivide_triangles_spheroid(float target_distance, LVecBase3f bb) {
+  int subdivisions;
+  do {
+    subdivisions = subdivide(target_distance);
+  } while(subdivisions > 0);
 }
 
 /**
  * Does the actual subdivision of the triangles.
  */
 int GeomStore::
-subdivide(float d) {
+subdivide(float d, bool s, LVecBase3f bb) {
   int current_size = _triangles.size();
   int subdivisions = 0;
   for (int i = 0; i < current_size; i++) {
@@ -106,12 +123,16 @@ subdivide(float d) {
         *_triangles[i]->vertex[start_id]->position;
       LVecBase3f s_pos = *_triangles[i]->vertex[start_id]->position;
       v_new = s_pos + v_new * 0.5f;
+      if (s) {
+        v_new = v_new.normalized();
+        v_new.componentwise_mult(bb);
+      }
       LVecBase4f c_new = (LVecBase4f) _colors[_triangles[i]->vertex[end_id]->id]
         + (LVecBase4f) _colors[_triangles[i]->vertex[start_id]->id];
       c_new *= 0.5;
       int vert_id = add_vertex(v_new, (UnalignedLVecBase4f) c_new);
-      add_triangle(vert_id, _triangles[i]->vertex[end_id]->id, 
-        _triangles[i]->vertex[last_id]->id);
+      nassertr(add_triangle(vert_id, _triangles[i]->vertex[end_id]->id, 
+        _triangles[i]->vertex[last_id]->id), -1);
       _triangles[i]->replace_vertex(_triangles[i]->vertex[end_id], 
         _vertices[vert_id]);
       _triangle_indices[i][end_id] = vert_id;
@@ -287,10 +308,15 @@ operator * (float v) {
 
 int GeomStore::
 operator * (LVecBase3f v) {
+  mult_vec(v);
+  return 0;
+}
+
+void GeomStore::
+mult_vec(LVecBase3f v) {
   for (int i = 0; i < _vertex_positions.size(); i++) {
     _vertex_positions[i].componentwise_mult(v);
   }
-  return 0;
 }
 
 int GeomStore::

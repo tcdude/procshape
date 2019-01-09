@@ -33,9 +33,9 @@ class Triangle {
     LVecBase3f normal;  // unit vector orthogonal to this face
     int _longest_edge_index; // the start index of the longest edge
     float _longest_edge_length; // the length of the longest edge
-    void compute_normal();
-    void compute_longest_edge();
-    void replace_vertex(Vertex *v_old, Vertex *v_new);
+    bool compute_normal();
+    bool compute_longest_edge();
+    bool replace_vertex(Vertex *v_old, Vertex *v_new);
     int has_vertex(Vertex *v);
 };
 
