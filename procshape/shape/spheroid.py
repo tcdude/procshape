@@ -23,19 +23,13 @@ class Spheroid(Shape):
             self,
             bounding_box,
             origin_offset=Vec3(0),
-            subdiv=None,
             subdiv_dist=None
     ):
-        # type: (Vec3, Optional[Vec3], Optional[int], Optional[float]) -> None
+        # type: (Vec3, Optional[Vec3], Optional[float]) -> None
         super(Spheroid, self).__init__('SpheroidShape')
-        if None not in (subdiv, subdiv_dist):
-            raise ValueError('Specify either subdiv or subdiv_dist, '
-                             'not both!')
         self.__bounding_box__ = bounding_box
         self.__origin_offset__ = origin_offset
-        self.__subdiv_type__ = 'fixed' if subdiv is not None else 'dist'
-        self.__subdiv_arg__ = subdiv or subdiv_dist \
-            if (subdiv, subdiv_dist) != (None, None) else 2.0
+        self.__subdiv_dist__ = subdiv_dist or 2.0
         self.__generate_initial__()
 
     @property
@@ -55,12 +49,8 @@ class Spheroid(Shape):
 
     def __generate_initial__(self):
         c = Cuboid(self.bounding_box)
-        c.subdivide(2)
-        c.geom_store.to_unit_sphere()
-        _ = c.geom_store * self.bounding_box
-        if self.__subdiv_type__ == 'fixed' and self.__subdiv_arg__ > 2:
-            c.subdivide(self.__subdiv_arg__ - 2)
-        else:
-            c.subdivide_dist(self.__subdiv_arg__)
         self.geom_store.extend(c.geom_store)
-        # self.__update_spheroid__()
+        self.subdivide_dist_spheroid(
+            self.__subdiv_dist__,
+            self.__bounding_box__
+        )

@@ -1,6 +1,8 @@
 """
 Provides basic shapes for PG. All shapes should be subclassed from Shape.
 """
+from panda3d.core import Vec3
+
 from procshape.shape.geomstore import GeomStore
 
 
@@ -25,5 +27,8 @@ class Shape(object):
     def subdivide(self, subdivisions=2):
         self.geom_store.subdivide_triangles(subdivisions)
 
-    def subdivide_dist(self, target_distance=2):
+    def subdivide_dist(self, target_distance=2.0):
         self.geom_store.subdivide_triangles_distance(target_distance)
+
+    def subdivide_dist_spheroid(self, target_distance=2.0, bb=Vec3(1.0)):
+        self.geom_store.subdivide_triangles_spheroid(target_distance, bb)
