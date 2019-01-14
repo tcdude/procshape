@@ -49,6 +49,9 @@ class Spheroid(Shape):
 
     def __generate_initial__(self):
         c = Cuboid(self.bounding_box)
+        # c.subdivide(3)
+        # c.geom_store.to_unit_sphere()
+        # _ = c.geom_store * self.__bounding_box__
         self.geom_store.extend(c.geom_store)
         self.subdivide_dist_spheroid(
             self.__subdiv_dist__,
