@@ -9,13 +9,18 @@
 
 using namespace std;
 
+/**
+ * Constructor
+ * Pass v_reserve and t_reserve to specify how much memory is reserved.
+ */
 GeomStore::
-GeomStore() {
-  _vertices.reserve((int)1e6);
-  _triangles.reserve((int)1e6);
-  _vertex_positions.reserve((int)1e6);
-  _colors.reserve((int)1e6);
-  _triangle_indices.reserve((int)1e6);
+GeomStore(int v_reserve, int t_reserve) {
+  _v_reserve = v_reserve;
+  _t_reserve = t_reserve;
+  _vertices.reserve(v_reserve);
+  _triangles.reserve(t_reserve);
+  _vertex_positions.reserve(v_reserve);
+  _colors.reserve(v_reserve);
 }
 
 GeomStore::
@@ -32,31 +37,45 @@ add_vertex(LVecBase3f point) {
 
 /**
  * Add vertex with position v and color c to the GeomStore.
+ * Returns the vertex id on success, -1 on error.
  */
 int GeomStore::
 add_vertex(LVecBase3f point, LVecBase4f color) {
+  if (_vertices.size() == _v_reserve) {
+    geomstore_cat->error() << "Maximum Vertices of " << _v_reserve << "reached"
+      << endl;
+  }
+  nassertr(_vertices.size() < _v_reserve, -1);
   for (int i = 0; i < _vertices.size(); i++) {
     if (_vertex_positions[i] == point && _colors[i] == color) {
+      // geomstore_cat->warning() << "Vertex already exists!" << endl;
       return i;
     }
   }
-  int id = _vertices.size();
   _vertex_positions.push_back(point);
   _colors.push_back(color);
   Vertex* vert = new Vertex(
     &_vertex_positions.back(), 
     &_colors.back(), 
-    id);
+    -1);
   _vertices.push_back(vert);
-  return id;
+  _vertices.back()->id = _vertices.size() - 1;
+  return _vertices.back()->id;
 }
 
 /**
  * Add a triangle to the GeomStore.
+ * Returns the triangle id on success, -1 on error.
  */
 int GeomStore:: 
 add_triangle(int v0, int v1, int v2) {
+  nassertr(_triangles.size() < _t_reserve, -1);
   nassertr(v0 >= 0 && v1 >= 0 && v2 >= 0, -1);
+  if (v0 >= _vertices.size() || v1 >= _vertices.size() || v2 >= _vertices.size()) {
+    geomstore_cat->error() << "Vertex index/indices out of bounds! Got (" 
+      << v0 << "/" << v1 << "/" << v2 << "). Current size is " 
+      << _vertices.size() << endl;
+  }
   nassertr(v0 < _vertices.size() && v1 < _vertices.size() && v2 < _vertices.size(), -1);
   int id = _triangles.size();
   Triangle* tri = new Triangle(
@@ -64,9 +83,47 @@ add_triangle(int v0, int v1, int v2) {
     _vertices[v1],
     _vertices[v2]);
   _triangles.push_back(tri);
-  LVecBase3i indices = LVecBase3i(v0, v1, v2);
-  _triangle_indices.push_back(indices);
   return id;
+}
+
+/**
+ * Add a quad to the GeomStore. Creates two triangles with successive ids.
+ * Returns the first triangle id on success, -1 on error.
+ */
+int GeomStore:: 
+add_quad(int v0, int v1, int v2, int v3) {
+  int t0 = add_triangle(v0, v1, v2);
+  int t1 = add_triangle(v2, v3, v0);
+  nassertr(t0 > -1 && t1 > -1, -1);
+  return t0;
+}
+
+
+/**
+ * Mirror the contents of GeomStore on the specified `axis`by multiplying the 
+ * values by -1. This only works, if the GeomStore does not contain geometry
+ * with both positive and negative values of the indicated axis. Use with 
+ * caution!
+ */
+bool GeomStore::
+mirror(int axis) {
+  nassertr(axis >= 0 && axis < 3, false);
+  GeomStore *g = new GeomStore(_vertices.size() + 4, _triangles.size() + 4);
+  g->extend(this);
+  LVecBase3f m = 1.0f;
+  m[axis] = -1.0f;
+  g->mult_vec(m);
+  g->flip_faces();
+  extend(g);
+  return true;
+}
+
+bool GeomStore::
+flip_faces() {
+  for (int i = 0; i < _triangles.size(); i++) {
+    nassertr(_triangles[i]->flip(), false);
+  }
+  return true;
 }
 
 /**
@@ -75,8 +132,12 @@ add_triangle(int v0, int v1, int v2) {
  */
 void GeomStore::
 subdivide_triangles(int subdivisions) {
+  int current_size;
   for (int j = 0; j < subdivisions; j++) {
-    subdivide();
+    current_size = _triangles.size();
+    for (int i = 0; i < current_size; i++) {
+      nassertv(subdivide(_triangles[i]) == 0);
+    }
   }
 }
 
@@ -88,8 +149,16 @@ subdivide_triangles(int subdivisions) {
 void GeomStore::
 subdivide_triangles_distance(float target_distance) {
   int subdivisions;
+  int vert_id;
+  int end_id;
+  int last_id;
   do {
-    subdivisions = subdivide(target_distance);
+    subdivisions = 0;
+    Triangle* it = *max_element(begin(_triangles), end(_triangles));
+    if (it->_longest_edge_length > target_distance) {
+      nassertv(subdivide(it) == 0);
+      subdivisions++;
+    }
   } while (subdivisions);
 }
 
@@ -102,44 +171,36 @@ subdivide_triangles_distance(float target_distance) {
 void GeomStore::
 subdivide_triangles_spheroid(float target_distance, LVecBase3f bb) {
   int subdivisions;
+  int vert_id;
+  int end_id;
+  int last_id;
   do {
-    subdivisions = subdivide(target_distance);
-  } while(subdivisions > 0);
+    subdivisions = 0;
+    Triangle* it = *max_element(begin(_triangles), end(_triangles));
+    if (it->_longest_edge_length > target_distance) {
+      nassertv(subdivide(it, true, bb) == 0);
+      subdivisions++;
+    }
+  } while (subdivisions);
 }
 
 /**
- * Does the actual subdivision of the triangles.
+ * Does the actual subdivision of the triangle.
  */
 int GeomStore::
-subdivide(float d, bool s, LVecBase3f bb) {
-  int current_size = _triangles.size();
-  int subdivisions = 0;
-  for (int i = 0; i < current_size; i++) {
-    if (d == 0.0f || (d > 0.0f && _triangles[i]->_longest_edge_length > d)) {
-      int start_id = _triangles[i]->_longest_edge_index;
-      int end_id = (start_id + 1) % 3;
-      int last_id = (start_id + 2) % 3;
-      LVecBase3f v_new = *_triangles[i]->vertex[end_id]->position - 
-        *_triangles[i]->vertex[start_id]->position;
-      LVecBase3f s_pos = *_triangles[i]->vertex[start_id]->position;
-      v_new = s_pos + v_new * 0.5f;
-      if (s) {
-        v_new = v_new.normalized();
-        v_new.componentwise_mult(bb);
-      }
-      LVecBase4f c_new = (LVecBase4f) _colors[_triangles[i]->vertex[end_id]->id]
-        + (LVecBase4f) _colors[_triangles[i]->vertex[start_id]->id];
-      c_new *= 0.5;
-      int vert_id = add_vertex(v_new, (UnalignedLVecBase4f) c_new);
-      nassertr(add_triangle(vert_id, _triangles[i]->vertex[end_id]->id, 
-        _triangles[i]->vertex[last_id]->id), -1);
-      _triangles[i]->replace_vertex(_triangles[i]->vertex[end_id], 
-        _vertices[vert_id]);
-      _triangle_indices[i][end_id] = vert_id;
-      subdivisions++;
-    }
+subdivide(Triangle* t, bool s, LVecBase3f bb) {
+  LVecBase3f point = t->get_split_point();
+  LVecBase4f color = t->get_split_color();
+  if (s) {
+    point = point.normalized();
+    point.componentwise_mult(bb);
   }
-  return subdivisions;
+  int vert_id = add_vertex(point, color);
+  int end_id = (t->_longest_edge_index + 1) % 3;
+  int last_id = (end_id + 1) % 3;
+  nassertr(add_triangle(vert_id, t->vertex[end_id]->id, t->vertex[last_id]->id), -1);
+  nassertr(t->replace_vertex(t->vertex[end_id], _vertices[vert_id]), -1);
+  return 0;
 }
 
 /**
@@ -149,17 +210,17 @@ subdivide(float d, bool s, LVecBase3f bb) {
 void GeomStore::
 extend(GeomStore *other) {
   int start_vertex_index = _vertices.size();
-
-  for (uint i = 0; i < other->_vertices.size(); i++) {
+  vector<int> v_id(other->_vertices.size());
+  for (int i = 0; i < other->_vertices.size(); i++) {
     LVecBase3f _pos = *other->_vertices[i]->position;
     UnalignedLVecBase4f _col = *other->_vertices[i]->color;
-    add_vertex(_pos, _col);
+    v_id[i] = add_vertex(_pos, _col);
   }
   
-  for (uint i = 0; i < other->_triangles.size(); i++) {
-    int v0 = other->_triangles[i]->vertex[0]->id + start_vertex_index;
-    int v1 = other->_triangles[i]->vertex[1]->id + start_vertex_index;
-    int v2 = other->_triangles[i]->vertex[2]->id + start_vertex_index;
+  for (int i = 0; i < other->_triangles.size(); i++) {
+    int v0 = v_id[other->_triangles[i]->vertex[0]->id];
+    int v1 = v_id[other->_triangles[i]->vertex[1]->id];
+    int v2 = v_id[other->_triangles[i]->vertex[2]->id];
     add_triangle(v0, v1, v2);
   }
 }
@@ -202,7 +263,7 @@ normals_as_color() {
 void GeomStore::
 to_unit_sphere() {
   for (int i = 0; i < _vertex_positions.size(); i++) {
-    _vertex_positions[i].normalize();
+    _vertex_positions[i] = _vertex_positions[i].normalized();
   }
 }
 
@@ -246,6 +307,22 @@ get_p3d_geom_node(string name) {
   PT(GeomNode) node = new GeomNode(name);
   node->add_geom(geom);
   return node;
+}
+
+/**
+ * Returns all triangle indices from this instance of GeomStore.
+ */
+PTA_LVecBase3i GeomStore::
+get_triangle_indices() {
+  PTA_LVecBase3i t_i;
+  t_i.reserve(_triangles.size());
+  for (int i = 0; i < _triangles.size(); i++) {
+    LVecBase3i idx = {_triangles[i]->vertex[0]->id,
+                      _triangles[i]->vertex[1]->id, 
+                      _triangles[i]->vertex[2]->id};
+    t_i.push_back(idx);
+  }
+  return t_i;
 }
 
 /**

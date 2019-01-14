@@ -9,7 +9,7 @@ local_test/
 
 # VSCode
 .vscode/
-*/build/
+build/
 geomstore/p3dmodulebuilder/source/interrogate_module.cpp
 geomstore/p3dmodulebuilder/source/interrogate_wrapper.cpp
 geomstore/p3dmodulebuilder/source/interrogate.in

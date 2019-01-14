@@ -30,7 +30,7 @@ class Vertex {
   public:
     LVecBase3f* position;  // location of point in euclidean space
     UnalignedLVecBase4f* color;  // vertex color
-    LVecBase3f normal;  // location of point in euclidean space
+    LVecBase3f normal;  // Vertex Normal
     int id;  // place of vertex in original Array
     
     vector<Vertex *> neighbor;  // adjacent vertices

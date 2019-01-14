@@ -9,15 +9,15 @@ Include all your dynamically typed classes here, e.g.
 */
 #include "dconfig.h"
 
-Configure(config_mymodule);
-NotifyCategoryDef(mymodule , "");
+Configure(config_geomstore);
+NotifyCategoryDef(geomstore , "");
 
-ConfigureFn(config_mymodule) {
-  init_libmymodule();
+ConfigureFn(config_geomstore) {
+  init_libgeomstore();
 }
 
 void
-init_libmymodule() {
+init_libgeomstore() {
   static bool initialized = false;
   if (initialized) {
     return;
