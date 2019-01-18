@@ -19,6 +19,7 @@ from procshape.shape.cuboid import Cuboid
 from procshape.shape.cylinder import SingleCylinder
 from procshape.shape.plane import Plane
 from procshape.shape.spheroid import Spheroid
+from procshape.shape.geomstore import Shape
 
 
 class Demo(ShowBase):
@@ -55,6 +56,9 @@ class Demo(ShowBase):
         self.accept('s', self.generate_spheroid)
         self.accept('c', self.generate_cylinder)
         self.accept('f1', self.toggle_wireframe)
+
+        # Shape
+        self.shape = Shape()
 
         self.task_mgr.add(self.update, 'update')
 
@@ -132,9 +136,15 @@ class Demo(ShowBase):
             random.uniform(50.0, 400.0)
         )
         hpr = Vec3(*[random.random() * 360 for _ in range(3)])
-        s = Spheroid(bounding_box, subdiv_dist=2.0)
-        s.geom_store.normals_as_color()
-        geom_node = s.geom_node
+        s = self.shape.get_spheroid(bounding_box, Vec3(0))
+        s.subdivide_triangles(8)
+        s.to_unit_sphere()
+        _ = s * bounding_box
+        s.normals_as_color()
+        geom_node = s.get_p3d_geom_node('Spheroid')
+        # s = Spheroid(bounding_box, subdiv_dist=2.0)
+        # s.geom_store.normals_as_color()
+        # geom_node = s.geom_node
         spheroid_np = self.render.attach_new_node(geom_node)
         shape = get_bullet_shape(geom_node)
         node = BulletRigidBodyNode('Cuboid')
