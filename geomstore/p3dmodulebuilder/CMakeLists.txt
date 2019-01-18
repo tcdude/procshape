@@ -302,7 +302,7 @@ if (MSVC)
   add_definitions("/Zm300 /DWIN32_VC /DWIN32")
 
   # No exceptions
-  add_definitions("/D_HAS_EXCEPTIONS=0")
+  # add_definitions("/D_HAS_EXCEPTIONS=0")
 
   # No RTTI
   add_definitions("/GR-")
@@ -336,7 +336,7 @@ else()
   add_definitions("-std=c++11")
 
   # No exceptions
-  add_definitions("-fno-exceptions")
+  # add_definitions("-fno-exceptions")
 
   # Differnt optimization settings
   if (OPTIMIZE STREQUAL "1")
