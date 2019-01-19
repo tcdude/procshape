@@ -40,7 +40,7 @@ def find_sources(base_dir):
     for f in files:
         fpath = join(base_dir, f)
         if isfile(fpath) and check_ignore(f) and p.match(f) is not None:
-            if f.endswith(".pb.h"):
+            if f.endswith(".pb.h") or f.startswith('mesh'):
                 continue # Skip protobuf
             sources.append(fpath)
         elif isdir(fpath):

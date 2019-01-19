@@ -5,6 +5,7 @@ import numpy as np
 
 def get_empty_box():
   g = geomstore.GeomStore()
+  g.set_num_rows(8)
   v0 = g.add_vertex(Vec3(-2, 0, 0), Vec4(1.0))
   v1 = g.add_vertex(Vec3(2, 0, 0), Vec4(1.0))
   v2 = g.add_vertex(Vec3(2, 0, 1), Vec4(1.0))
@@ -65,9 +66,6 @@ g.print_colors()
 print('triangles:')
 g.print_triangles()
 print('\n')
-
-a = np.asarray(memoryview(g._vertex_positions))
-print(a)
 
 g = get_empty_box()
 
@@ -135,8 +133,6 @@ print('------------------------')
 print('vertices:')
 g.print_vertices()
 print('\n')
-a = np.asarray(memoryview(g._vertex_positions))
-print(f'[len={len(a)}, data={a}, dtype={a.dtype}]')
 
 n = g.get_p3d_geom_node('Test')
 print(n)
@@ -154,9 +150,10 @@ print('------------------------')
 print('vertices:')
 g.print_vertices()
 print('\n')
-g = s.get_spheroid(Vec3(2, 5, 7), Vec3(0))
+g = s.get_spheroid(Vec3(1, 1, 1), Vec3(0))
 print('spheroid vertices')
 print('------------------------')
 print('vertices:')
 g.print_vertices()
+g.print_triangles()
 print('\n')

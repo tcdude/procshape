@@ -9,6 +9,7 @@
 #define GEOMSTORE_H
 
 #include <iostream>
+#include <algorithm>
 
 #include "pandabase.h"
 #include "luse.h"
@@ -23,18 +24,53 @@
 #include "geomNode.h"
 #include "Python.h"
 
-#ifndef CPPPARSER
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
-typedef OpenMesh::TriMesh_ArrayKernelT<> MyMesh;
-#endif
+#include "config_module.h"
+#include "common.h"
+#include "mesh.h"
+
+typedef std::string string;
 
 class GeomStore {
   PUBLISHED:
     GeomStore();
     ~GeomStore();
+    void print_vertices() { print_pta(_points); };
+    void print_colors() { print_pta(_colors); };  
+    void print_triangles() { print_pta(get_triangle_indices()); };
+    void set_num_rows(int rows);
+    int add_vertex(LVecBase3f point);
+    int add_vertex(LVecBase3f point, LVecBase4f color);
+    int add_triangle(int v0, int v1, int v2);
+    int add_quad(int v0, int v1, int v2, int v3);
+    bool mirror(int axis);
+    bool flip_faces();
+    void subdivide_triangles(int subdivisions = 1);
+    void subdivide_triangles_distance(float target_distance = 2.0f);
+    void subdivide_triangles_spheroid(float target_distance = 2.0f, 
+      LVecBase3f bb = LVecBase3f(1.0f));
+    void extend(GeomStore *other);
+    void set_color(LVecBase4f color);
+    void set_color(LVecBase4f color, PTA(int) selection);
+    void normals_as_color();
+    void to_unit_sphere();
+    PT(GeomNode) get_p3d_geom_node(string name="UnnamedGeom");
+    PTA_LVecBase3i get_triangle_indices();
+    int operator + (float v);
+    int operator + (LVecBase3f v);
+    int operator - (float v);
+    int operator - (LVecBase3f v);
+    int operator * (float v);
+    int operator * (LVecBase3f v);
+    int operator / (float v);
+    int operator / (LVecBase3f v);
+    /*PTA_LVecBase3f get_pta();
+    void set_pta(PTA_LVecBase3f);*/
   private:
+    PTA_LVecBase3f _points;
+    PTA_LVecBase4f _colors;
+    PTA_LVecBase3i _triangles;
 #ifndef CPPPARSER
-    MyMesh _my_mesh;
+    Mesh* _my_mesh;
 #endif
 };
 
