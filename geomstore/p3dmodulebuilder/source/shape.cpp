@@ -219,7 +219,7 @@ get_spheroid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
     dim_x = (dim_max + 1) % 3;
     dim_y = (dim_max + 2) % 3;
     if (i > 0) {
-      ppos = bounding_box[dim_max] * pow((float) i / (float) num_poly, 2.0);
+      ppos = bounding_box[dim_max] * pow((float) i / (float) num_poly, 1.618f);
       float f = (1.0f - pow(ppos, 2.0f) / pow(bounding_box[dim_max], 2.0f));
       a = sqrt(pow(bounding_box[dim_x], 2.0f) * f);
       b = sqrt(pow(bounding_box[dim_y], 2.0f) * f);
@@ -246,7 +246,7 @@ get_spheroid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
     geomstore_cat->warning() << "Connect with Quads" << endl;
     for (int i = 0; i < num_poly - 1; i++) {
       nassertr(
-        g.add_quad(v_id[i + 1], v_id[i], v_id[i + 2], v_id[i + 3]) != -1, 
+        g.add_quad(v_id[i + 3], v_id[i + 1], v_id[i], v_id[i + 2]) != -1, 
         g
       );
     }
@@ -427,7 +427,7 @@ get_spheroid_exp(LVecBase3f bounding_box, LVecBase3f origin_offset) {
 
 /**
  * Returns a GeomStore of a cylinder or a cone, if one of the two radii is 
- * set to 0.0f.
+ * set to 0.0f. Tries to approximate homogenous triangles.
  * 
  * Args:
  *  int circle_points: number of points that make the base circle of the cylinder. 
@@ -443,5 +443,116 @@ get_cylinder(int circle_points,
              LVecBase3f end_point,
              float end_radius) {
   GeomStore g;
+  nassertr(start_radius != 0.0f || end_radius != 0.0f, g);
+  nassertr(start_radius >= 0.0f && end_radius >= 0.0f, g);
+  nassertr(circle_points > 2, g);
+  int num_circles;
+  LVecBase3f direction = end_point - start_point;
+  float length = direction.length();
+  float seg_len;
+  seg_len = PI * start_radius + PI * end_radius;
+  seg_len /= (float) circle_points;
+  num_circles = max((int) round(length / seg_len) + 1, 2);
+  g.set_num_rows((num_circles + 2) * circle_points + 2);
+
+  /* Insert Vertices */  
+  vector<vector<int>> v_id;
+  if (start_radius > 0.0f) {
+    vector<int> t = {g.add_vertex(start_point)};
+    v_id.push_back(t);
+  }
+  for (int i = 0; i < num_circles; i++) {
+    float part = (float) i / (float) (num_circles - 1);
+    float r = (1.0f - part) * start_radius;
+    r += part * end_radius;
+    LVecBase3f center = direction * ((float) i / (float) (num_circles - 1));
+    center += start_point;
+    vector<int> row_id;
+    if (r == 0.0f) {
+      row_id.push_back(g.add_vertex(center));
+    }
+    else {
+      PTA_LVecBase3f circle = get_circle(
+        circle_points, 
+        r, 
+        direction);
+      row_id.reserve(circle.size());
+      for (auto it : circle) {
+        row_id.push_back(g.add_vertex(it + center));
+      }
+    }
+    v_id.push_back(row_id);
+  } 
+  if (end_radius > 0.0f) {
+    vector<int> t = {g.add_vertex(end_point)};
+    v_id.push_back(t);
+  }
+  
+  /* Connect Vertices with triangles */
+  for (int i = 0; i < v_id.size() - 1; i++) {
+    if (v_id[i].size() == v_id[i + 1].size()) {
+      for (int j = 0; j < v_id[i].size(); j++) {
+        int v0 = v_id[i][j];
+        int v1 = v_id[i][(j + 1) % v_id[i].size()];
+        int v2 = v_id[i + 1][(j + 1) % v_id[i + 1].size()];
+        int v3 = v_id[i + 1][j];
+        nassertr(g.add_quad(v0, v1, v2, v3) != -1, g);
+      }
+    }
+    else if (v_id[i].size() == 1) {
+      int v0 = v_id[i][0];
+      for (int j = 0; j < v_id[i + 1].size(); j++) {
+        int v1 = v_id[i + 1][(j + 1) % v_id[i + 1].size()];
+        int v2 = v_id[i + 1][j];
+        nassertr(g.add_triangle(v0, v1, v2) != -1, g);
+      }
+    }
+    else {
+      int v2 = v_id[i + 1][0];
+      for (int j = 0; j < v_id[i].size(); j++) {
+        int v0 = v_id[i][j];
+        int v1 = v_id[i][(j + 1) % v_id[i].size()];
+        nassertr(g.add_triangle(v0, v1, v2) != -1, g);
+      }
+    }
+  }
+
   return g;
+}
+
+
+/**
+ * Returns a PTA_LVecBase3f of `segments` length, containing the coordinates
+ * of a circle of `radius` (default = 1.0f) with `direction` as its up vector.
+ */
+PTA_LVecBase3f Shape::
+get_circle(int segments, float radius, LVecBase3f direction) {
+  PTA_LVecBase3f p_pta;
+  p_pta.reserve(segments);
+  float rad_step = TWOPI / (float) segments;
+  direction.normalize();
+  bool rot = (direction == LVecBase3f(0.0f, 0.0f, 1.0f)) ? false : true;
+
+  LQuaternionf q;
+  if (rot) {
+    LVecBase3f v1 = {0.0f, 0.0f, 1.0f};
+    LVecBase3f a = v1.cross(direction);
+    q[1] = a[0];
+    q[2] = a[1];
+    q[3] = a[2];
+    q[0] = 1.0f + v1.dot(direction);
+    q.normalize();
+  }
+
+  for (int i = 0; i < segments; i++) {
+    p_pta.push_back(LVecBase3f(
+      cosf(i * rad_step) * radius, 
+      sinf(i * rad_step) * radius, 
+      0.0f));
+    if (rot) {
+      p_pta[i] = q.xform(p_pta[i]);
+    }
+  }
+  
+  return p_pta;
 }

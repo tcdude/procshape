@@ -21,6 +21,7 @@
 #include "config_module.h"
 
 
+constexpr float TWOPI = 3.14159265358979f * 2.0f;
 constexpr float PI = 3.14159265358979f;
 constexpr float HALFPI = 3.14159265358979f / 2.0f;
 
