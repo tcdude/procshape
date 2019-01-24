@@ -8,16 +8,10 @@
 #define SHAPE_HPP
 
 
-#include <iostream>
-#include <cmath>
-
 #include "pandabase.h"
-#include "luse.h"
-#include "nodePath.h"
 
-#include "config_module.h"
-#include "geomstore.h"
-#include "common.h"
+class LVecBase3f;
+class LVecBase2f;
 
 void set_dimensions(LVecBase3f, int, int, int);
 

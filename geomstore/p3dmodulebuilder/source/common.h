@@ -7,18 +7,14 @@
 
 #include <iostream>
 #include <vector>
-#include <cmath>
-#include <string>
 #include <algorithm> 
-#include <sstream> 
-#include <iterator>
 #include <utility> 
+#include <iterator>
+#include <string>
+#include <sstream> 
 
-#include "pnotify.h"
 #include "pta_LVecBase3.h"
 #include "pta_LVecBase4.h"
-
-#include "config_module.h"
 
 
 constexpr float TWOPI = 3.14159265358979f * 2.0f;

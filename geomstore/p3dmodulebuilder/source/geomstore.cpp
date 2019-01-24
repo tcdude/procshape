@@ -4,6 +4,22 @@
 
 #include "geomstore.h"
 
+#include <iostream>
+#include <algorithm>
+
+#include "luse.h"
+#include "pnotify.h"
+#include "geomVertexData.h"
+#include "geomVertexWriter.h"
+#include "geom.h"
+#include "geomTriangles.h"
+#include "geomNode.h"
+
+#include "config_module.h"
+#include "mesh.h"
+#include "tritri.h"
+
+
 using namespace std;
 
 
@@ -13,6 +29,7 @@ using namespace std;
 GeomStore::
 GeomStore() {
   set_num_rows(8);  // at least reserve a little...
+  _my_mesh = new Mesh();
 }
 
 
@@ -21,18 +38,38 @@ GeomStore() {
  */
 GeomStore::
 ~GeomStore() {
-
+  delete _my_mesh;
 }
 
+
+/**
+ * Clear GeomStore
+ */
+void GeomStore::
+clear() {
+  int pc = _points.capacity();
+  int tc = _triangles.capacity();
+  _points.clear();
+  _points.reserve(pc);
+  _colors.clear();
+  _colors.reserve(pc);
+  _triangles.clear();
+  _triangles.reserve(tc);
+}
 
 /**
  * Reserve memory for PTAs
  */
 void GeomStore::
-set_num_rows(int rows) {
+set_num_rows(int rows, int triangles) {
   _points.reserve(rows);
   _colors.reserve(rows);
-  _triangles.reserve(rows * 2);  // TODO: Maybe let it grow on its own?
+  if (triangles <= 0) {
+    _triangles.reserve(rows * 2);
+  }
+  else {
+    _triangles.reserve(triangles);
+  }
 }
 
 
@@ -136,6 +173,7 @@ flip_faces() {
  */
 void GeomStore::
 subdivide_triangles(int subdivisions) {
+  _my_mesh->subdivision(this, subdivisions);
 }
 
 
@@ -146,6 +184,7 @@ subdivide_triangles(int subdivisions) {
  */
 void GeomStore::
 subdivide_triangles_distance(float target_distance) {
+  _my_mesh->subdivision_length(this, (double) target_distance);
 }
 
 

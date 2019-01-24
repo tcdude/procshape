@@ -7,6 +7,12 @@
 
 #include "common.h"
 
+#include <cmath>
+
+#include "pnotify.h"
+
+#include "config_module.h"
+
 using namespace std;
 
 

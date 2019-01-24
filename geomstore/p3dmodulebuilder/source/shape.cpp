@@ -4,7 +4,15 @@
  * @date 2018-01-10
  */
 
+#include <iostream>
+#include <cmath>
+
+#include "nodePath.h"
 #include "luse.h"
+
+#include "config_module.h"
+#include "geomstore.h"
+#include "common.h"
 
 #include "shape.h"
 
@@ -141,7 +149,7 @@ get_plane(LVecBase3f origin, LVecBase2f bounds, LVecBase3f normal, bool two_side
 GeomStore Shape::
 get_cuboid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
   GeomStore g;
-  g.set_num_rows(8);
+  g.set_num_rows(8, 12);
   LVecBase3f up_left_front = {-bounding_box[0], -bounding_box[1], bounding_box[2]};
   LVecBase3f down_left_front = {-bounding_box[0], -bounding_box[1], -bounding_box[2]};
   LVecBase3f down_right_front = {bounding_box[0], -bounding_box[1], -bounding_box[2]};
@@ -160,23 +168,18 @@ get_cuboid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
   int p_urb = g.add_vertex(up_right_back);
 
   /* Front */
-  g.add_triangle(p_ulf, p_dlf, p_drf);
-  g.add_triangle(p_drf, p_urf, p_ulf);
+  g.add_quad(p_ulf, p_dlf, p_drf, p_urf);
   /* Back */
-  g.add_triangle(p_ulb, p_urb, p_drb);
-  g.add_triangle(p_drb, p_dlb, p_ulb);
+  g.add_quad(p_ulb, p_urb, p_drb, p_dlb);
   /* Up */
-  g.add_triangle(p_ulb, p_ulf, p_urf);
-  g.add_triangle(p_urf, p_urb, p_ulb);
-  /* Up */
-  g.add_triangle(p_dlb, p_drb, p_drf);
-  g.add_triangle(p_drf, p_dlf, p_dlb);
+  g.add_quad(p_ulb, p_ulf, p_urf, p_urb);
+  /* Down */
+  g.add_quad(p_dlb, p_drb, p_drf, p_dlf);
   /* Left */
-  g.add_triangle(p_ulb, p_dlb, p_dlf);
-  g.add_triangle(p_dlf, p_ulf, p_ulb);
+  g.add_quad(p_ulb, p_dlb, p_dlf, p_ulf);
   /* Right */
-  g.add_triangle(p_urb, p_urf, p_drf);
-  g.add_triangle(p_drf, p_urf, p_urb);
+  g.add_quad(p_urb, p_urf, p_drf, p_drb);
+  g.subdivide_triangles_distance(1.5 * min(bounding_box[0], min(bounding_box[1], bounding_box[2])));
   return g;
 }
 
@@ -219,7 +222,8 @@ get_spheroid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
     dim_x = (dim_max + 1) % 3;
     dim_y = (dim_max + 2) % 3;
     if (i > 0) {
-      ppos = bounding_box[dim_max] * pow((float) i / (float) num_poly, 1.618f);
+      //ppos = bounding_box[dim_max] * pow((float) i / (float) num_poly, 1.618f);
+      ppos = bounding_box[dim_max] / (float) num_poly * (float) i;
       float f = (1.0f - pow(ppos, 2.0f) / pow(bounding_box[dim_max], 2.0f));
       a = sqrt(pow(bounding_box[dim_x], 2.0f) * f);
       b = sqrt(pow(bounding_box[dim_y], 2.0f) * f);
