@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include "nodePath.h"
 #include "luse.h"
@@ -140,7 +141,8 @@ get_plane(LVecBase3f origin, LVecBase2f bounds, LVecBase3f normal, bool two_side
 }
 
 /**
- * Returns a GeomStore of a cuboid.
+ * Returns a GeomStore of a cuboid. Approximates equilateral quadrangles on the
+ * surface.
  * 
  * Args:
  *  LVecBase3f bounding_box: 3D bounding box of the cuboid.
@@ -167,19 +169,49 @@ get_cuboid(LVecBase3f bounding_box, LVecBase3f origin_offset) {
   int p_drb = g.add_vertex(down_right_back);
   int p_urb = g.add_vertex(up_right_back);
 
-  /* Front */
+  // Front
   g.add_quad(p_ulf, p_dlf, p_drf, p_urf);
-  /* Back */
+  // Back
   g.add_quad(p_ulb, p_urb, p_drb, p_dlb);
-  /* Up */
+  // Up
   g.add_quad(p_ulb, p_ulf, p_urf, p_urb);
-  /* Down */
+  // Down
   g.add_quad(p_dlb, p_drb, p_drf, p_dlf);
-  /* Left */
+  // Left
   g.add_quad(p_ulb, p_dlb, p_dlf, p_ulf);
-  /* Right */
+  // Right
   g.add_quad(p_urb, p_urf, p_drf, p_drb);
-  g.subdivide_triangles_distance(1.5 * min(bounding_box[0], min(bounding_box[1], bounding_box[2])));
+
+
+  int dim_max, dim_min, dim_other;
+  if (bounding_box[0] >= bounding_box[1]) {
+    dim_max = (bounding_box[0] >= bounding_box[2]) ? 0 : 2;
+    dim_min = (bounding_box[1] <= bounding_box[2]) ? 1 : 2;
+  }
+  else {
+    dim_max = (bounding_box[1] >= bounding_box[2]) ? 1 : 2;
+    dim_min = (bounding_box[0] <= bounding_box[2]) ? 0 : 2;
+  }
+  dim_other = 3 - dim_max - dim_min;
+  float bb_max = bounding_box[dim_max];
+  float bb_min = bounding_box[dim_min];
+  float bb_other = bounding_box[dim_other];
+  int steps[3];
+  steps[dim_max] = (int) round((bb_max / bb_min) * 2.0f);
+  steps[dim_other] = (int) round((bb_other / bb_min) * 2.0f);
+  steps[dim_min] = 2;
+
+  float h = 0.0f;
+  for (int i = 0; i < 3; i++) {
+    int ni = (i + 1) % 3;
+    float a = bounding_box[i] / steps[i];
+    float b = bounding_box[ni] / steps[ni];
+    h = max(h, sqrtf(powf(a, 2.0f) + powf(b, 2.0f)));
+  }
+
+  h *= 1.001;  // Reduce unnecessary subdivision
+
+  g.subdivide_triangles_distance(h);
   return g;
 }
 
@@ -521,6 +553,55 @@ get_cylinder(int circle_points,
     }
   }
 
+  return g;
+}
+
+
+/**
+ * Returns a GeomStore of a torus shape with a number of `sections`. The
+ * diameter of the ring is derived from the difference between `irad` and
+ * `orad`. The same amount of sections are used for each ring segment.
+ */
+GeomStore Shape::
+get_torus(int sections, 
+          float irad, 
+          float orad, 
+          LVecBase3f direction) {
+  GeomStore g;
+  nassertr(sections > 3, g);
+  nassertr(irad < orad, g);
+  nassertr(irad > 0.0f, g);
+  direction.normalize();
+  nassertr(direction != LVecBase3f(0.0f), g);
+  g.set_num_rows(sections * sections, sections * sections * 2);
+  float seg_rad = (orad - irad) / 2.0f;
+  float torus_rad = seg_rad + irad;
+  PTA_LVecBase3f torus = get_circle(sections, torus_rad, direction);
+  vector<vector<int>> v_id;
+  vector<int> empty(sections);
+  vector<float> rad;
+  for (int i = 0; i < sections; i++) {
+    v_id.push_back(empty);
+    rad.push_back(TWOPI / sections * i);
+  }
+
+  for (int i = 0; i < sections; i++) {
+    LVecBase3f w = LVecBase3f(cosf(rad[i]), sinf(rad[i]), 0.0f);    
+    for (int j = 0; j < sections; j++) {
+      LVecBase3f p = torus_rad * w + seg_rad * cosf(rad[j]) * w;
+      p += LVecBase3f(0.0f, 0.0f, seg_rad * sinf(rad[j]));
+      v_id[i][j] = g.add_vertex(p);
+    }
+  }
+  
+  for (int i = 0; i < sections; i++) {
+    int ni = (i + 1) % sections;
+    for (int j = 0; j < sections; j++) {
+      int nj = (j + 1) % sections;
+      g.add_quad(v_id[i][nj], v_id[i][j], v_id[ni][j], v_id[ni][nj]);
+    }
+  }
+  g.rotate(get_vector_rotation(LVecBase3f(0.0f, 0.0f, 1.0f), direction));
   return g;
 }
 

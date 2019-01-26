@@ -158,6 +158,9 @@ mirror(int axis) {
 }
 
 
+/**
+ * Flips the winding of all faces.
+ */
 bool GeomStore::
 flip_faces() {
   for (int i = 0; i < _triangles.size(); i++) {
@@ -166,6 +169,16 @@ flip_faces() {
   return true;
 }
 
+/**
+ * Rotates the GeomStore using the provided Quaternion `q`.
+ */
+bool GeomStore::
+rotate(LQuaternionf q) {
+  for (LVecBase3f& it : _points) {
+    it = q.xform(it);
+  }
+  return true;
+}
 
 /**
  * Subdivide triangles s times. This is useful when the triangles already are
@@ -310,6 +323,15 @@ get_p3d_geom_node(string name) {
 PTA_LVecBase3i GeomStore::
 get_triangle_indices() {
   return _triangles;
+}
+
+/**
+ * Returns the vertex with id `vid`.
+ */
+LVecBase3f GeomStore::
+get_vertex(int vid) {
+  nassertr(vid >= 0 && vid < _points.size(), LVecBase3f(-1.0f));
+  return _points[vid];
 }
 
 /**

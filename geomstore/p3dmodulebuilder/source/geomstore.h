@@ -38,6 +38,7 @@ class GeomStore {
     int add_quad(int v0, int v1, int v2, int v3);
     bool mirror(int axis);
     bool flip_faces();
+    bool rotate(LQuaternionf q);
     void subdivide_triangles(int subdivisions = 1);
     void subdivide_triangles_distance(float target_distance = 2.0f);
     void subdivide_triangles_spheroid(float target_distance = 2.0f, 
@@ -49,6 +50,7 @@ class GeomStore {
     void to_unit_sphere();
     PT(GeomNode) get_p3d_geom_node(string name="UnnamedGeom");
     PTA_LVecBase3i get_triangle_indices();
+    LVecBase3f get_vertex(int vid);
     int operator + (float v);
     int operator + (LVecBase3f v);
     int operator - (float v);

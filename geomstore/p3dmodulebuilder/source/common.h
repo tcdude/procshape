@@ -26,6 +26,8 @@ int lcm_vect(std::vector<int>& v);
 int gcd(int, int);
 float ellipse_perimeter(float, float);
 
+LQuaternionf get_vector_rotation(LVecBase3f start, LVecBase3f dest);
+
 template<class T> int contains_(const std::vector<T> & c, const T & t) { 
   return count(begin(c), end(c), t); 
 }

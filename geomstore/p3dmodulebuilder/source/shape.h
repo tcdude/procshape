@@ -36,6 +36,11 @@ class Shape {
       float start_radius,
       LVecBase3f end_point,
       float end_radius);
+    GeomStore get_torus(
+      int sections, 
+      float irad, 
+      float orad, 
+      LVecBase3f direction = LVecBase3f(0.0f, 0.0f, 1.0f));
     PTA_LVecBase3f get_circle(
       int segments,
       float radius = 1.0f,

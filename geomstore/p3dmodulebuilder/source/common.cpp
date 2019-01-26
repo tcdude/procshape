@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "pnotify.h"
+#include "luse.h"
 
 #include "config_module.h"
 
@@ -103,4 +104,40 @@ float ellipse_perimeter(float a, float b) {
   }
   sum *= PI * (a + b);
   return sum;
+}
+
+/**
+ * 
+ */
+LQuaternionf get_vector_rotation(LVecBase3f start, LVecBase3f dest) {
+  start.normalize();
+  dest.normalize();
+  float cos_theta = start.dot(dest);
+  LVecBase3f rotation_axis;
+
+  if (cos_theta < -1 + 0.001f) {
+    rotation_axis = LVecBase3f(0.0f, 0.0f, 1.0f).cross(start);
+    if (rotation_axis.dot(rotation_axis) < 0.01f) {
+      rotation_axis = LVecBase3f(1.0f, 0.0f, 0.0f).cross(start);
+    }
+    rotation_axis.normalize();
+    float s = sinf(HALFPI);
+    LQuaternionf q;
+    q[0] = cosf(HALFPI);
+    q[1] = rotation_axis[0] * s;
+    q[2] = rotation_axis[1] * s;
+    q[3] = rotation_axis[2] * s;
+    return q;
+  }
+
+  rotation_axis = start.cross(dest);
+
+  float s = sqrt((1.0f + cos_theta) * 2.0f);
+  float invs = 1.0f / s;
+  LQuaternionf q;
+  q[0] = s * 0.5f;
+  q[1] = rotation_axis[0] * invs;
+  q[2] = rotation_axis[1] * invs;
+  q[3] = rotation_axis[2] * invs;
+  return q;
 }
