@@ -2,6 +2,10 @@
  * Representation of arbitrary geometry, stored in OpenMesh Kernel and
  * accessible through memoryview in Python. Provides subdivision, mesh
  * decimation smoothing
+ * 
+ * @file geomstore.cpp
+ * @author Tiziano Bettio
+ * @date 2019-01-10
  */
 
 

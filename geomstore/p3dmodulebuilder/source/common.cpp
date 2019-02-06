@@ -1,7 +1,10 @@
 /**
  * 
  * Global vars and functions
- *  
+ * 
+ * @file common.cpp
+ * @author Tiziano Bettio
+ * @date 2019-01-10
  */ 
 
 

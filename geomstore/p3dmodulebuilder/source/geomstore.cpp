@@ -1,5 +1,7 @@
 /**
- * 
+ * @file geomstore.cpp
+ * @author Tiziano Bettio
+ * @date 2019-01-10
  */
 
 #include "geomstore.h"
@@ -17,7 +19,6 @@
 
 #include "config_module.h"
 #include "mesh.h"
-#include "tritri.h"
 
 
 using namespace std;

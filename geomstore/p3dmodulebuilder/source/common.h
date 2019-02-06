@@ -62,6 +62,28 @@ std::pair<bool, int> find_in_pta(const PTA(T) vecOfElements, const T  & element)
 	return result;
 }
 
+template < typename T>
+std::pair<bool, int> find_in_vec(const std::vector<T>& vecOfElements, const T& element)
+{
+	std::pair<bool, int> result;
+ 
+	// Find given element in vector
+	auto it = std::find(vecOfElements.begin(), vecOfElements.end(), element);
+ 
+	if (it != vecOfElements.end())
+	{
+		result.second = distance(vecOfElements.begin(), it);
+		result.first = true;
+	}
+	else
+	{
+		result.first = false;
+		result.second = -1;
+	}
+ 
+	return result;
+}
+
 template<class T> int index_of(const std::vector<T> & c, const T & v) { 
   return find(begin(c), end(c), v) - begin(c); 
 } // Note: Not presently called

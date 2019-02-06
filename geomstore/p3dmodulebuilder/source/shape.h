@@ -10,6 +10,8 @@
 
 #include "pandabase.h"
 
+#include "geomstore.h"
+
 class LVecBase3f;
 class LVecBase2f;
 

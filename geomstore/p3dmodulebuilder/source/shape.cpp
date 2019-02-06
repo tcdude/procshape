@@ -1,7 +1,7 @@
 /**
  * @file shape.cpp
  * @author Tiziano Bettio
- * @date 2018-01-10
+ * @date 2019-01-10
  */
 
 #include <iostream>
@@ -12,7 +12,6 @@
 #include "luse.h"
 
 #include "config_module.h"
-#include "geomstore.h"
 #include "common.h"
 
 #include "shape.h"
